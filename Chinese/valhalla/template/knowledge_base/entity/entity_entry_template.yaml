@@ -1,0 +1,44 @@
+﻿  - entity_id: "ent_000001"
+
+    canonical_name: "知识图谱"
+    entity_type: "concept"        # concept | claim | method | object | event | variable | question | term
+
+    aliases:
+      - "knowledge graph"
+      - "KG"
+      - "知识关系图"
+
+    content_file: "entities/ent_000001_知识图谱.md"
+
+    description: >
+      用于表达知识单元之间结构化关系的图结构。
+
+    status: "active"              # draft | active | stale | deprecated | merged
+    content_status: "active"      # missing | draft | active | stale | deprecated
+    extraction_status: "partial"  # none | partial | complete | needs_review
+
+    language: "zh-CN"
+
+    tags:
+      - "知识管理"
+      - "图结构"
+
+    merge:
+      merged_to: null
+      reason: null
+
+    ingestion:
+      resource_refs:
+        - "res_000001"
+        - "res_000002"
+      last_ingested_at: "YYYY-MM-DD"
+      ingestion_note: >
+        已从相关资料中提取基础定义和关键结构，后续仍需补充应用场景。
+
+    metadata:
+      created_at: "YYYY-MM-DD"
+      updated_at: "YYYY-MM-DD"
+      created_by: "human"         # human | llm | script | import
+      note: null
+
+

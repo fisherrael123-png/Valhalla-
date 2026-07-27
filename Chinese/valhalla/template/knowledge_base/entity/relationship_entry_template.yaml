@@ -1,0 +1,40 @@
+﻿  - relationship_id: "rel_000001"
+    subject_entity_id: "ent_000001"
+    object_entity_id: "ent_000002"
+
+    predicate:
+      id: "pred_supports"
+      name: "supports"
+      zh_name: "支撑"
+      direction: "directed"
+      layer: "evidence"
+      mechanism: "empirical"
+
+    description: >
+      主体实体为客体实体提供证据或论证支持。
+
+    confidence: "high"
+    weight: 0.8
+
+    evidence:
+      resource_refs:
+        - "res_000001"
+      entity_resource_map_refs:
+        - "erm_000001"
+      evidence_note: >
+        说明关系判断所依据的具体结果、段落或实验。
+
+    scope:
+      valid_in: []
+      conditions: null
+      limitations: null
+
+    status: "active"
+
+    metadata:
+      created_at: "YYYY-MM-DD"
+      updated_at: "YYYY-MM-DD"
+      created_by: "llm"
+      note: null
+
+

@@ -1,0 +1,13 @@
+资源(resource)：
+一个 resource_id 表示一份内容与版本均唯一的信息对象。
+同一信息可以拥有 PDF、Markdown、TXT、OCR 或文本抽取等不同表现文件，也可以在 Library 的多个非公共文件夹中拥有多个来源副本。
+预印本、正式版、修订版、实质性翻译或内容存在增删的文件必须使用不同 resource_id。
+每个资源只有一个主名称 canonical_name，其他名称登记为 aliases。
+上层知识库资料表只以 resource_id 作为资源身份，并可保存成员状态与加入输入审计；entity、relationship 和 graph 只引用 resource_id，不直接引用资料文件路径。
+通过统一资源身份可避免文件改名、移动、重复副本或格式转换造成的资料指代漂移。
+
+注意与entity的区别：
+entity是一个知识的抽象实体；
+entity_id是这个抽象实体的名字；
+一个知识的各种表述，是这个知识实体的抽象表示；
+resource是知识的载体。

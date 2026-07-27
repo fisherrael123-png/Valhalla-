@@ -1,0 +1,10 @@
+version: 1
+kind: relationship_registry
+kb: "<知识库名>"
+updated_at: "YYYY-MM-DD"
+
+description: >
+  本文件是当前知识库的 relationship fact 文件索引。
+  它只登记 predicate/type 与对应 fact 文件，不保存完整关系事实。
+
+relationship_fact_files: []

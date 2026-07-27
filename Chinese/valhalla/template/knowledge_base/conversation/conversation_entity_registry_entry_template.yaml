@@ -1,0 +1,42 @@
+﻿  - id: conv_ent_000001
+    canonical_label: <对话实体名称>
+    type: conversation_entity
+    aliases:
+      - <别名1>
+      - <别名2>
+
+    status: active
+    created_at: YYYY-MM-DD
+    updated_at: YYYY-MM-DD
+
+    content_file: conversation_entities/conv_ent_000001_<对话实体名称>.md
+
+    scope: >
+      该实体覆盖的对话主题、问题范围或沉淀对象。
+
+    summary: >
+      对该对话实体的简短说明，用于快速识别该实体代表什么。
+
+    resource_conversations:
+      - conversation_id: <可选：会话ID或本地记录ID>
+        date: YYYY-MM-DD
+        title: <会话标题或主题>
+        turn_range: <可选：如 1-18>
+        summary_file: conversation_entities/<对应会话总结文件>.md
+        note: >
+          说明该次会话对本实体贡献了什么。
+
+    related_entities:
+      normal_entities:
+        - ent_000001
+      conversation_entities:
+        - conv_ent_000002
+      engineering_entities:
+        - eng_ent_000001
+
+    tags:
+      - <标签>
+
+    notes: >
+      其他维护说明。
+

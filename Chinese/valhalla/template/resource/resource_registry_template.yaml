@@ -1,0 +1,8 @@
+﻿version: 2
+registry: resource_registry
+root_scope: current_root
+updated_at: "YYYY-MM-DD"
+
+resources: []
+
+

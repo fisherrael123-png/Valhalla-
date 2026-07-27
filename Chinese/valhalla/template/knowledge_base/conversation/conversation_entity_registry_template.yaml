@@ -1,0 +1,18 @@
+﻿version: 1
+kb: <知识库名>
+registry_type: conversation_entity_registry
+updated_at: YYYY-MM-DD
+
+id_policy:
+  prefix: conv_ent
+  format: conv_ent_000001
+  next_id: conv_ent_000001
+
+description: >
+  本文件用于登记由对话内容沉淀出的特殊 entity。
+  conversation entity 不进入普通 entity_registry.yaml，
+  其正文文件默认写入“conversation_entities/”目录，避免与资料摄入形成的知识实体混用。
+
+entities: []
+
+

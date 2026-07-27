@@ -1,0 +1,23 @@
+﻿  - map_id: "erm_000001"
+    entity_id: "ent_000001"
+    resource_id: "res_000001"
+
+    evidence_type: "supports"     # mentions | defines | supports | refutes | discusses | derives | applies
+    locator:
+      page: null
+      section: null
+      heading: null
+      quote: null
+      path_in_resource: null
+
+    confidence: "high"            # low | medium | high
+    weight: 0.8                   # 0.0 - 1.0
+
+    note: >
+      <说明这个资料与知识点之间的关系。>
+
+    metadata:
+      created_at: "YYYY-MM-DD"
+      updated_at: "YYYY-MM-DD"
+      created_by: "human"
+

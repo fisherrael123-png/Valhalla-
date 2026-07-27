@@ -1,0 +1,32 @@
+version: 1
+kind: knowledge_graph_fact
+graph_id: "<graph_id>"
+name: "<图谱名称>"
+kb: "<知识库名>"
+status: "active"
+created_at: "YYYY-MM-DD"
+updated_at: "YYYY-MM-DD"
+created_by: "human"
+
+purpose: >
+  使用者确认将若干 relationship fact 组织为一张图。
+
+relationship_sources: []
+included_relationships: []
+included_entities: []
+
+selection_rule:
+  relationship_types: []
+  entity_status:
+    - "active"
+  relationship_status:
+    - "active"
+
+layout:
+  type: "curated"
+  note: null
+
+provenance:
+  authority_note: >
+    本 graph fact 是对既有 entity fact 与 relationship fact 的组合与确认。
+    它不创建新的 entity 或 relationship fact。

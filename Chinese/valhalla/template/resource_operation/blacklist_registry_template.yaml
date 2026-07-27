@@ -1,0 +1,55 @@
+﻿version: 2
+registry: blacklist_registry
+scope: global
+updated_at: "YYYY-MM-DD"
+
+description: >
+  Valhalla root 级全局资源黑名单。
+  listed 状态针对整个 resource_id 生效；该资源下的所有表现文件均不得被任何知识库摄入、引用或用于推理。
+
+entries:
+  - blacklist_id: "bl_000001"
+    resource_id: "res_000001"
+    status: "listed"  # listed | removed
+
+    matched_input:
+      value: "<用户输入的文件名或 Library 相对路径>"
+      input_type: "filename"  # filename | relative_path
+      resolved_source_path: "Library/<非公共文件夹>/<资料文件>"
+
+    resource_snapshot:
+      canonical_name: "<加入黑名单时的资源主名称>"
+      aliases: []
+      information_identity:
+        resource_type: "paper"
+        edition: null
+        version: null
+        doi: null
+
+    reason: >
+      加入黑名单的原因，例如论文被撤稿、数据造假、来源不可追溯或内容经核查为伪造。
+
+    evidence:
+      - type: "note"
+        value: "<证据说明、审查记录或链接>"
+
+    affected_rules:
+      ingest: blocked
+      citation: blocked
+      entity_update: blocked
+      relationship_building: blocked
+      knowledge_graph_building: blocked
+      report_generation: blocked
+
+    listed_at: "YYYY-MM-DD"
+    listed_by: "manual"
+
+    removed_at: null
+    removed_reason: null
+    removed_evidence: []
+
+    note: null
+    created_at: "YYYY-MM-DD"
+    updated_at: "YYYY-MM-DD"
+
+

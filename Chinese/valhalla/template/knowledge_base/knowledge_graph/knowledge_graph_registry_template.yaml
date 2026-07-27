@@ -1,0 +1,10 @@
+version: 1
+kind: knowledge_graph_registry
+kb: "<知识库名>"
+updated_at: "YYYY-MM-DD"
+
+description: >
+  本文件是当前知识库的 graph fact 索引。
+  它只登记有哪些 graph fact、路径、状态和用途，不保存完整节点和边事实。
+
+graphs: []

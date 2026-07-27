@@ -1,0 +1,21 @@
+﻿version: 1
+kb: <知识库名>
+registry_type: engineering_entity_registry
+updated_at: YYYY-MM-DD
+
+id_policy:
+  prefix: eng_ent
+  format: eng_ent_000001
+  next_id: eng_ent_000001
+
+description: >
+  本文件用于登记当前知识库中的 engineering entity。
+  engineering entity 表示工程实现相关对象，
+  包括脚本、目录、配置文件、schema、template、contract、workflow、
+  router、状态文件、命令入口和工程性设计决策。
+  这些实体不进入普通 entity_registry.yaml，
+  正文文件默认写入 engineering_entities/ 目录。
+
+entities: []
+
+

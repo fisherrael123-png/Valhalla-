@@ -1,0 +1,56 @@
+﻿  - id: eng_ent_000001
+    canonical_label: <工程实体名称>
+    type: engineering_entity
+
+    category: <script|directory|file|contract|workflow|schema|template|router|state|command|rule|decision|module|other>
+
+    aliases:
+      - <别名1>
+      - <别名2>
+
+    status: active
+    created_at: YYYY-MM-DD
+    updated_at: YYYY-MM-DD
+
+    content_file: engineering_entities/eng_ent_000001_<工程实体名称>.md
+
+    scope: >
+      该工程实体覆盖的工程对象、职责范围或实现边界。
+
+    summary: >
+      对该工程实体的简短说明。
+
+    resource_refs:
+      files:
+        - path: <相关工程文件路径>
+          role: <definition|implementation|schema|template|workflow|contract|reference>
+          note: >
+            说明该文件与本工程实体的关系。
+
+      conversations:
+        - conversation_id: <可选：会话ID或本地记录ID>
+          date: YYYY-MM-DD
+          title: <会话标题或主题>
+          note: >
+            说明该次会话对本工程实体贡献了什么。
+
+    related_entities:
+      normal_entities:
+        - ent_000001
+      conversation_entities:
+        - conv_ent_000001
+      engineering_entities:
+        - eng_ent_000002
+
+    dependencies:
+      upstream:
+        - eng_ent_000002
+      downstream:
+        - eng_ent_000003
+
+    tags:
+      - <标签>
+
+    notes: >
+      其他维护说明。
+

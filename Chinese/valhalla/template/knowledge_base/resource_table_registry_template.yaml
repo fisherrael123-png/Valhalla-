@@ -1,0 +1,11 @@
+﻿table:
+  name: "<local_resources | required_resources | excluded_resources>"
+  version: 3
+  kb: "<知识库名>"
+  updated_at: "YYYY-MM-DD"
+  purpose: >
+    <说明本表用途>
+
+resources: []
+
+

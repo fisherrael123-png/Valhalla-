@@ -1,0 +1,16 @@
+﻿  - graph_id: "kg_default"
+    name: "默认知识图谱"
+    aliases:
+      - "默认图"
+      - "全局图谱"
+    path: "knowledge_graph/kg_default.yaml"
+    graph_type: "default"
+    status: "active"
+    description: >
+      当前知识库中 active entity 与 active relationship 的默认投影视图。
+    created_at: "YYYY-MM-DD"
+    updated_at: "YYYY-MM-DD"
+    tags: []
+    note: >
+      本登记项只指向具体图谱文件，不保存图谱内容。
+
