@@ -1,0 +1,15 @@
+  - graph_id: "kg_default"
+    name: "Default Knowledge Graph"
+    aliases:
+      - "default graph"
+      - "global graph"
+    path: "knowledge_graph/kg_default.yaml"
+    graph_type: "default"
+    status: "active"
+    description: >
+      The default projected view of active Entities and active Relationships in the current knowledge base.
+    created_at: "YYYY-MM-DD"
+    updated_at: "YYYY-MM-DD"
+    tags: []
+    note: >
+      This registry entry points only to the specific Graph file; it does not store Graph content.

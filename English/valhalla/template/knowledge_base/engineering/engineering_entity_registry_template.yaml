@@ -1,0 +1,17 @@
+version: 1
+kb: <knowledge-base-name>
+registry_type: engineering_entity_registry
+updated_at: YYYY-MM-DD
+
+id_policy:
+  prefix: eng_ent
+  format: eng_ent_000001
+  next_id: eng_ent_000001
+
+description: >
+  This file registers Engineering Entities in the current knowledge base.
+  An Engineering Entity represents an implementation-related object, including a script, directory, configuration file, schema, template, contract, workflow, Router, state file, command entry point, or engineering design decision.
+  These Entities do not enter the standard entity_registry.yaml.
+  Their content files are written to the engineering_entities/ directory by default.
+
+entities: []

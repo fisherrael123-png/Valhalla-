@@ -1,0 +1,41 @@
+  - id: conv_ent_000001
+    canonical_label: <Conversation Entity Name>
+    type: conversation_entity
+    aliases:
+      - <alias-1>
+      - <alias-2>
+
+    status: active
+    created_at: YYYY-MM-DD
+    updated_at: YYYY-MM-DD
+
+    content_file: conversation_entities/conv_ent_000001_<Conversation-Entity-Name>.md
+
+    scope: >
+      The conversation topics, problem scope, or consolidated subject covered by this Entity.
+
+    summary: >
+      A brief description for quickly identifying what this Conversation Entity represents.
+
+    resource_conversations:
+      - conversation_id: <optional-conversation-ID-or-local-record-ID>
+        date: YYYY-MM-DD
+        title: <conversation-title-or-topic>
+        turn_range: <optional-for-example-1-18>
+        summary_file: conversation_entities/<corresponding-conversation-summary-file>.md
+        note: >
+          Explain what this conversation contributed to the Entity.
+
+    related_entities:
+      normal_entities:
+        - ent_000001
+      conversation_entities:
+        - conv_ent_000002
+      engineering_entities:
+        - eng_ent_000001
+
+    tags:
+      - <tag>
+
+    notes: >
+      Additional maintenance notes.

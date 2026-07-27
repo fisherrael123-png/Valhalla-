@@ -1,0 +1,216 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "knowledge_graph_schema.json",
+  "title": "Valhalla Knowledge Graph",
+  "type": "object",
+  "required": ["version", "kb", "updated_at", "graph", "edges"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kb": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "graph": {
+      "type": "object",
+      "required": [
+        "graph_id",
+        "name",
+        "description",
+        "entity_registry",
+        "relationship_registry",
+        "resource_registry",
+        "entity_resource_map",
+        "filters"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "graph_id": {
+          "type": "string",
+          "pattern": "^kg_[A-Za-z0-9_-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "entity_registry": {
+          "type": "string"
+        },
+        "relationship_registry": {
+          "type": "string"
+        },
+        "resource_registry": {
+          "type": "string"
+        },
+        "entity_resource_map": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "object",
+          "required": [
+            "entity_status",
+            "relationship_layers",
+            "relationship_status"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "entity_status": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["active", "deprecated", "merged", "draft"]
+              },
+              "uniqueItems": true
+            },
+            "relationship_layers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "logical",
+                  "inference",
+                  "ontology",
+                  "evidence",
+                  "methodology",
+                  "writing",
+                  "temporal",
+                  "causal"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "relationship_status": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["active", "draft", "deprecated"]
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "edge_id",
+          "from",
+          "to",
+          "relationship_id",
+          "weight",
+          "confidence",
+          "evidence",
+          "scope",
+          "metadata"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "edge_id": {
+            "type": "string",
+            "pattern": "^edge_[A-Za-z0-9_-]+$"
+          },
+          "from": {
+            "type": "string",
+            "pattern": "^ent_[A-Za-z0-9_-]+$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^ent_[A-Za-z0-9_-]+$"
+          },
+          "relationship_id": {
+            "type": "string",
+            "pattern": "^rel_[A-Za-z0-9_-]+$"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "evidence": {
+            "type": "object",
+            "required": ["resource_refs", "entity_resource_map_refs"],
+            "additionalProperties": false,
+            "properties": {
+              "resource_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^res_[0-9]{6}$"
+                },
+                "uniqueItems": true
+              },
+              "entity_resource_map_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^erm_[0-9]{6}$"
+                },
+                "uniqueItems": true
+              }
+            }
+          },
+          "scope": {
+            "type": "object",
+            "required": ["valid_in", "conditions", "limitations"],
+            "additionalProperties": false,
+            "properties": {
+              "valid_in": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "conditions": {
+                "type": ["string", "null"]
+              },
+              "limitations": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "note": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": "object",
+            "required": ["created_at", "updated_at", "created_by"],
+            "additionalProperties": true,
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "created_by": {
+                "type": "string",
+                "enum": ["human", "llm", "script", "import"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

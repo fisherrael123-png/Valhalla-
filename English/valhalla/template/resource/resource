@@ -1,0 +1,13 @@
+Resource:
+One `resource_id` identifies an information object with unique content and version.
+The same information may have different representation files, such as PDF, Markdown, TXT, OCR, or extracted text, and may have multiple source copies in non-public Library folders.
+Preprints, published versions, revisions, substantive translations, or files with material additions or deletions must use different `resource_id` values.
+Each Resource has only one canonical name, `canonical_name`; all other names are registered as `aliases`.
+Upper-level knowledge-base resource tables use only `resource_id` as the Resource identity and may retain membership state and the original input for audit purposes. Entities, Relationships, and Graphs reference only `resource_id`, never resource file paths directly.
+A unified Resource identity prevents references from drifting when files are renamed, moved, duplicated, or converted between formats.
+
+Distinction from an Entity:
+An Entity is an abstract knowledge object.
+An `entity_id` is the name of that abstract object.
+Different expressions of a piece of knowledge are abstract representations of the same knowledge Entity.
+A Resource is the carrier of knowledge.

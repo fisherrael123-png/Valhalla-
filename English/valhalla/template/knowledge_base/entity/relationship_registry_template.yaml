@@ -1,0 +1,5 @@
+version: 2
+kb: "<knowledge-base-name>"
+updated_at: "YYYY-MM-DD"
+
+relationships: []

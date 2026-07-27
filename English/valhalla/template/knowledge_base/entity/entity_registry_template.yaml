@@ -1,0 +1,5 @@
+version: 1
+kb: "<knowledge-base-name>"
+updated_at: "YYYY-MM-DD"
+
+entities: []

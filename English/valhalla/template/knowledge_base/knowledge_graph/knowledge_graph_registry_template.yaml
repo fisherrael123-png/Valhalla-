@@ -1,0 +1,10 @@
+version: 1
+kind: knowledge_graph_registry
+kb: "<knowledge-base-name>"
+updated_at: "YYYY-MM-DD"
+
+description: >
+  This file is the Graph fact index for the current knowledge base.
+  It records only the available Graph facts, their paths, states, and purposes; it does not store complete node and edge facts.
+
+graphs: []

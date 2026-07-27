@@ -1,0 +1,65 @@
+  - resource_id: "res_000001"
+
+    identity:
+      canonical_name: "<unique-canonical-name>"
+      aliases:
+        - name: "<alias>"
+          type: "common"  # common | translated_title | abbreviation | filename | other
+          language: "en"
+      information_identity:
+        resource_type: "paper"  # paper | book | note | web | dataset | code | image | other
+        edition: null
+        version: null
+        language: "en"
+        published_at: null
+        doi: null
+        url: null
+
+    bibliographic:
+      authors: []
+      year: null
+      venue: null
+
+    representations:
+      - file_id: "file_000001"
+        representation_type: "authoritative"
+        # authoritative | duplicate | converted | ocr | extracted_text
+        format: "pdf"
+        media_type: "application/pdf"
+        derived_from: null
+
+        source_copies:
+          - path: "Library/<non-public-folder>/<resource-file>"
+            local_name: "<resource-filename>"
+            sha256: null
+            availability: "present"  # present | missing
+            checked_at: "YYYY-MM-DD"
+
+        public_copy:
+          path: "Library/public_resources/res_000001/authoritative.pdf"
+          sha256: null
+          availability: "present"  # present | missing
+          checked_at: "YYYY-MM-DD"
+
+        sync_status: "unchecked"
+        # in_sync | stale | missing_source | missing_public | unchecked
+
+    lifecycle:
+      status: "active"  # active | deprecated | deleted
+      changed_at: "YYYY-MM-DD"
+      reason: null
+
+    usage:
+      referenced_by: []
+      reference_count: 0
+      computed_at: "YYYY-MM-DD"
+
+    policy:
+      blacklist_status: "not_listed"  # not_listed | listed
+      blacklist_id: null
+      computed_at: "YYYY-MM-DD"
+
+    metadata:
+      created_at: "YYYY-MM-DD"
+      updated_at: "YYYY-MM-DD"
+      note: null

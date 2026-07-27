@@ -1,0 +1,9 @@
+- resource_id: "res_000001"
+  membership_status: "active"  # active | pending_removal
+  added_via:
+    value: "<resource_id, filename, Library-relative path, or folder provided by the user>"
+    input_type: "filename"  # resource_id | filename | relative_path | folder
+    resolved_at: "YYYY-MM-DD"
+  added_at: "YYYY-MM-DD"
+  removed_at: null
+  note: null

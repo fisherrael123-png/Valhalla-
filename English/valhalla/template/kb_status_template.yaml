@@ -1,0 +1,5 @@
+# Valhalla KB status template
+# Purpose: initialize .valhalla/kb_status.md
+
+kb_status: idle
+target_wiki_path: null

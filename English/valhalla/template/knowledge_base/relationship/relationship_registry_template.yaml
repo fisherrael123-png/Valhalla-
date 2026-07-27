@@ -1,0 +1,10 @@
+version: 1
+kind: relationship_registry
+kb: "<knowledge-base-name>"
+updated_at: "YYYY-MM-DD"
+
+description: >
+  This file is the Relationship fact file index for the current knowledge base.
+  It records only predicates/types and their corresponding fact files; it does not store complete Relationship facts.
+
+relationship_fact_files: []

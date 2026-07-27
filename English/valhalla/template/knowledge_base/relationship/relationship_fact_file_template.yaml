@@ -1,0 +1,10 @@
+version: 1
+kind: relationship_fact_file
+kb: "<knowledge-base-name>"
+predicate_id: "<predicate_id>"
+predicate_name: "<predicate_name>"
+predicate_zh_name: "<Chinese-predicate-name>"
+status: "active"
+updated_at: "YYYY-MM-DD"
+
+relationships: []

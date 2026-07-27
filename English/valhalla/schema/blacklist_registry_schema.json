@@ -1,0 +1,199 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "blacklist_registry_schema.json",
+  "title": "Valhalla Blacklist Registry",
+  "description": "Global Resource blacklist. A person supplies a filename or path, but the stable blacklist target is always the entire resource_id.",
+  "type": "object",
+  "required": ["version", "registry", "scope", "updated_at", "description", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 2
+    },
+    "registry": {
+      "type": "string",
+      "const": "blacklist_registry"
+    },
+    "scope": {
+      "type": "string",
+      "const": "global"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "blacklist_id",
+          "resource_id",
+          "status",
+          "matched_input",
+          "resource_snapshot",
+          "reason",
+          "evidence",
+          "affected_rules",
+          "listed_at",
+          "listed_by",
+          "removed_at",
+          "removed_reason",
+          "removed_evidence",
+          "note",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "blacklist_id": {
+            "type": "string",
+            "pattern": "^bl_[0-9]{6}$"
+          },
+          "resource_id": {
+            "type": "string",
+            "pattern": "^res_[0-9]{6}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["listed", "removed"]
+          },
+          "matched_input": {
+            "type": "object",
+            "required": ["value", "input_type", "resolved_source_path"],
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "input_type": {
+                "type": "string",
+                "enum": ["filename", "relative_path"]
+              },
+              "resolved_source_path": {
+                "type": "string",
+                "pattern": "^Library/(?!public_resources/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
+              }
+            }
+          },
+          "resource_snapshot": {
+            "type": "object",
+            "required": ["canonical_name", "aliases", "information_identity"],
+            "additionalProperties": false,
+            "properties": {
+              "canonical_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "aliases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              },
+              "information_identity": {
+                "type": "object",
+                "required": ["resource_type", "edition", "version", "doi"],
+                "additionalProperties": false,
+                "properties": {
+                  "resource_type": {
+                    "type": "string"
+                  },
+                  "edition": {
+                    "type": ["string", "null"]
+                  },
+                  "version": {
+                    "type": ["string", "null"]
+                  },
+                  "doi": {
+                    "type": ["string", "null"]
+                  }
+                }
+              }
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "value"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["note", "link", "path"]
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "affected_rules": {
+            "type": "object",
+            "required": [
+              "ingest",
+              "citation",
+              "entity_update",
+              "relationship_building",
+              "knowledge_graph_building",
+              "report_generation"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "ingest": {"const": "blocked"},
+              "citation": {"const": "blocked"},
+              "entity_update": {"const": "blocked"},
+              "relationship_building": {"const": "blocked"},
+              "knowledge_graph_building": {"const": "blocked"},
+              "report_generation": {"const": "blocked"}
+            }
+          },
+          "listed_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "listed_by": {
+            "type": "string",
+            "enum": ["manual"]
+          },
+          "removed_at": {
+            "type": ["string", "null"],
+            "format": "date"
+          },
+          "removed_reason": {
+            "type": ["string", "null"]
+          },
+          "removed_evidence": {
+            "type": "array"
+          },
+          "note": {
+            "type": ["string", "null"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}
+
+

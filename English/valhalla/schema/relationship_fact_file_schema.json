@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Valhalla Relationship Fact File",
+  "type": "object",
+  "required": ["version", "kind", "kb", "predicate_id", "status", "updated_at", "relationships"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "kind": { "type": "string", "const": "relationship_fact_file" },
+    "kb": { "type": "string" },
+    "predicate_id": { "type": "string" },
+    "predicate_name": { "type": "string" },
+    "predicate_zh_name": { "type": "string" },
+    "status": { "type": "string", "enum": ["active", "archived", "deprecated"] },
+    "updated_at": { "type": "string" },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["relationship_id", "subject_entity_id", "object_entity_id", "predicate", "evidence", "scope", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "relationship_id": { "type": "string" },
+          "subject_entity_id": { "type": "string" },
+          "object_entity_id": { "type": "string" },
+          "predicate": {
+            "type": "object",
+            "required": ["id"],
+            "properties": { "id": { "type": "string" } }
+          },
+          "evidence": { "type": "object" },
+          "scope": { "type": "object" },
+          "status": { "type": "string" }
+        }
+      }
+    }
+  }
+}

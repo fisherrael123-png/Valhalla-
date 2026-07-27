@@ -1,0 +1,9 @@
+table:
+  name: "<local_resources | required_resources | excluded_resources>"
+  version: 3
+  kb: "<knowledge-base-name>"
+  updated_at: "YYYY-MM-DD"
+  purpose: >
+    <explain-the-purpose-of-this-table>
+
+resources: []

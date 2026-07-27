@@ -1,0 +1,55 @@
+  - id: eng_ent_000001
+    canonical_label: <Engineering Entity Name>
+    type: engineering_entity
+
+    category: <script|directory|file|contract|workflow|schema|template|router|state|command|rule|decision|module|other>
+
+    aliases:
+      - <alias-1>
+      - <alias-2>
+
+    status: active
+    created_at: YYYY-MM-DD
+    updated_at: YYYY-MM-DD
+
+    content_file: engineering_entities/eng_ent_000001_<Engineering-Entity-Name>.md
+
+    scope: >
+      The engineering objects, responsibilities, or implementation boundaries covered by this Engineering Entity.
+
+    summary: >
+      A brief description of this Engineering Entity.
+
+    resource_refs:
+      files:
+        - path: <related-engineering-file-path>
+          role: <definition|implementation|schema|template|workflow|contract|reference>
+          note: >
+            Explain how this file relates to the Engineering Entity.
+
+      conversations:
+        - conversation_id: <optional-conversation-ID-or-local-record-ID>
+          date: YYYY-MM-DD
+          title: <conversation-title-or-topic>
+          note: >
+            Explain what this conversation contributed to the Engineering Entity.
+
+    related_entities:
+      normal_entities:
+        - ent_000001
+      conversation_entities:
+        - conv_ent_000001
+      engineering_entities:
+        - eng_ent_000002
+
+    dependencies:
+      upstream:
+        - eng_ent_000002
+      downstream:
+        - eng_ent_000003
+
+    tags:
+      - <tag>
+
+    notes: >
+      Additional maintenance notes.

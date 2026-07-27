@@ -1,0 +1,81 @@
+﻿{
+  "title": "Valhalla KB Status Schema",
+  "description": "Validates <valhalla-root>/.valhalla/kb_status.md. This file identifies which knowledge base the current session process uses.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kb_status",
+    "target_wiki_path"
+  ],
+  "properties": {
+    "kb_status": {
+      "type": "string",
+      "description": "idle means no knowledge base is active; kb:<name> identifies the currently active knowledge base.",
+      "oneOf": [
+        {
+          "const": "idle",
+          "description": "No knowledge base is currently active."
+        },
+        {
+          "pattern": "^kb:[^\\s:/\\\\]+$",
+          "description": "A knowledge base is currently active, for example kb:victor."
+        }
+      ]
+    },
+    "target_wiki_path": {
+      "description": "The Wiki path of the active knowledge base; it must be null in the idle state.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^Wiki/Wiki_[^\\s:/\\\\]+$"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kb_status": {
+            "const": "idle"
+          }
+        },
+        "required": [
+          "kb_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_wiki_path": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kb_status": {
+            "pattern": "^kb:"
+          }
+        },
+        "required": [
+          "kb_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_wiki_path": {
+            "type": "string",
+            "pattern": "^Wiki/Wiki_[^\\s:/\\\\]+$"
+          }
+        }
+      }
+    }
+  ]
+}
+
+

@@ -1,0 +1,16 @@
+version: 1
+kb: <knowledge-base-name>
+registry_type: conversation_entity_registry
+updated_at: YYYY-MM-DD
+
+id_policy:
+  prefix: conv_ent
+  format: conv_ent_000001
+  next_id: conv_ent_000001
+
+description: >
+  This file registers special Entities distilled from conversations.
+  Conversation Entities do not enter the standard entity_registry.yaml.
+  Their content files are written to the conversation_entities/ directory by default to avoid mixing them with Knowledge Entities created through Resource ingestion.
+
+entities: []

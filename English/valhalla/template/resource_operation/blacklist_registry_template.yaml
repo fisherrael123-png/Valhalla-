@@ -1,0 +1,53 @@
+version: 2
+registry: blacklist_registry
+scope: global
+updated_at: "YYYY-MM-DD"
+
+description: >
+  Valhalla's root-level global Resource blacklist.
+  The listed state applies to the entire resource_id; no representation file under that Resource may be ingested, cited, or used for reasoning by any knowledge base.
+
+entries:
+  - blacklist_id: "bl_000001"
+    resource_id: "res_000001"
+    status: "listed"  # listed | removed
+
+    matched_input:
+      value: "<user-provided filename or Library-relative path>"
+      input_type: "filename"  # filename | relative_path
+      resolved_source_path: "Library/<non-public-folder>/<resource-file>"
+
+    resource_snapshot:
+      canonical_name: "<Resource canonical name when blacklisted>"
+      aliases: []
+      information_identity:
+        resource_type: "paper"
+        edition: null
+        version: null
+        doi: null
+
+    reason: >
+      Reason for blacklisting, such as a retracted paper, fabricated data, untraceable provenance, or content verified as falsified.
+
+    evidence:
+      - type: "note"
+        value: "<evidence description, review record, or link>"
+
+    affected_rules:
+      ingest: blocked
+      citation: blocked
+      entity_update: blocked
+      relationship_building: blocked
+      knowledge_graph_building: blocked
+      report_generation: blocked
+
+    listed_at: "YYYY-MM-DD"
+    listed_by: "manual"
+
+    removed_at: null
+    removed_reason: null
+    removed_evidence: []
+
+    note: null
+    created_at: "YYYY-MM-DD"
+    updated_at: "YYYY-MM-DD"

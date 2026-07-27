@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Valhalla Graph Fact Registry",
+  "type": "object",
+  "required": ["version", "kind", "kb", "updated_at", "graphs"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "kind": { "type": "string", "const": "knowledge_graph_registry" },
+    "kb": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "description": { "type": "string" },
+    "graphs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["graph_id", "machine_graph_path", "human_graph_path", "relationship_types", "status", "updated_at"],
+        "additionalProperties": false,
+        "properties": {
+          "graph_id": { "type": "string" },
+          "name": { "type": "string" },
+          "machine_graph_path": { "type": "string", "pattern": "^knowledge_graph/machine/.+\\.yaml$" },
+          "human_graph_path": { "type": "string", "pattern": "^knowledge_graph/human/.+\\.md$" },
+          "relationship_types": { "type": "array", "items": { "type": "string" } },
+          "status": { "type": "string", "enum": ["active", "archived", "deprecated"] },
+          "description": { "type": ["string", "null"] },
+          "updated_at": { "type": "string" }
+        }
+      }
+    }
+  }
+}

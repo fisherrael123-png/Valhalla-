@@ -1,0 +1,32 @@
+version: 1
+kind: knowledge_graph_fact
+graph_id: "<graph_id>"
+name: "<graph-name>"
+kb: "<knowledge-base-name>"
+status: "active"
+created_at: "YYYY-MM-DD"
+updated_at: "YYYY-MM-DD"
+created_by: "human"
+
+purpose: >
+  The user confirmed organizing several Relationship facts into one Graph.
+
+relationship_sources: []
+included_relationships: []
+included_entities: []
+
+selection_rule:
+  relationship_types: []
+  entity_status:
+    - "active"
+  relationship_status:
+    - "active"
+
+layout:
+  type: "curated"
+  note: null
+
+provenance:
+  authority_note: >
+    This Graph fact combines and confirms existing Entity and Relationship facts.
+    It does not create new Entity or Relationship facts.

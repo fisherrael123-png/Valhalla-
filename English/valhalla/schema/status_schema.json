@@ -1,0 +1,14 @@
+﻿{
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["base", "admin"]
+    }
+  },
+  "required": ["version", "status"]
+}
+

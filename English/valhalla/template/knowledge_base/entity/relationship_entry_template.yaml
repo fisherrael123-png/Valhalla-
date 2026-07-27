@@ -1,0 +1,38 @@
+  - relationship_id: "rel_000001"
+    subject_entity_id: "ent_000001"
+    object_entity_id: "ent_000002"
+
+    predicate:
+      id: "pred_supports"
+      name: "supports"
+      zh_name: "supports"
+      direction: "directed"
+      layer: "evidence"
+      mechanism: "empirical"
+
+    description: >
+      The subject Entity provides evidence or argumentative support for the object Entity.
+
+    confidence: "high"
+    weight: 0.8
+
+    evidence:
+      resource_refs:
+        - "res_000001"
+      entity_resource_map_refs:
+        - "erm_000001"
+      evidence_note: >
+        Describe the specific result, passage, or experiment supporting the Relationship assessment.
+
+    scope:
+      valid_in: []
+      conditions: null
+      limitations: null
+
+    status: "active"
+
+    metadata:
+      created_at: "YYYY-MM-DD"
+      updated_at: "YYYY-MM-DD"
+      created_by: "llm"
+      note: null

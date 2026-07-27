@@ -1,0 +1,130 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resource_table_schema.json",
+  "title": "Valhalla Resource Membership Table",
+  "description": "Machine-authoritative table of knowledge-base Resource membership. The same-named Markdown file is only a human-readable projection.",
+  "type": "object",
+  "required": ["table", "resources"],
+  "additionalProperties": false,
+  "properties": {
+    "table": {
+      "type": "object",
+      "required": ["name", "version", "kb", "updated_at", "purpose"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["local_resources", "required_resources", "excluded_resources"]
+        },
+        "version": {
+          "type": "integer",
+          "const": 3
+        },
+        "kb": {
+          "type": "string",
+          "minLength": 1
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "resource_id",
+          "membership_status",
+          "added_via",
+          "added_at",
+          "removed_at",
+          "note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "resource_id": {
+            "type": "string",
+            "pattern": "^res_[0-9]{6}$"
+          },
+          "membership_status": {
+            "type": "string",
+            "enum": ["active", "pending_removal"]
+          },
+          "added_via": {
+            "type": "object",
+            "required": ["value", "input_type", "resolved_at"],
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "input_type": {
+                "type": "string",
+                "enum": ["resource_id", "filename", "relative_path", "folder"]
+              },
+              "resolved_at": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "added_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "removed_at": {
+            "type": ["string", "null"],
+            "format": "date"
+          },
+          "note": {
+            "type": ["string", "null"]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "membership_status": {
+                  "const": "active"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "removed_at": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "membership_status": {
+                  "const": "pending_removal"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "removed_at": {
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+

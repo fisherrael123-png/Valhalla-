@@ -1,0 +1,120 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "entity_resource_map_schema.json",
+  "title": "Valhalla Entity resource Map",
+  "type": "object",
+  "required": ["version", "kb", "updated_at", "mappings"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kb": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "map_id",
+          "entity_id",
+          "resource_id",
+          "evidence_type",
+          "locator",
+          "confidence",
+          "weight",
+          "metadata"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "map_id": {
+            "type": "string",
+            "pattern": "^erm_[0-9]{6}$"
+          },
+          "entity_id": {
+            "type": "string",
+            "pattern": "^ent_[A-Za-z0-9_-]+$"
+          },
+          "resource_id": {
+            "type": "string",
+            "pattern": "^res_[0-9]{6}$"
+          },
+          "evidence_type": {
+            "type": "string",
+            "enum": [
+              "mentions",
+              "defines",
+              "supports",
+              "refutes",
+              "discusses",
+              "derives",
+              "applies"
+            ]
+          },
+          "locator": {
+            "type": "object",
+            "required": ["page", "section", "heading", "quote", "path_in_resource"],
+            "additionalProperties": false,
+            "properties": {
+              "page": {
+                "type": ["integer", "string", "null"]
+              },
+              "section": {
+                "type": ["string", "null"]
+              },
+              "heading": {
+                "type": ["string", "null"]
+              },
+              "quote": {
+                "type": ["string", "null"]
+              },
+              "path_in_resource": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "note": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": "object",
+            "required": ["created_at", "updated_at", "created_by"],
+            "additionalProperties": true,
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "created_by": {
+                "type": "string",
+                "enum": ["human", "llm", "script", "import"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

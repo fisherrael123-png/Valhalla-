@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Valhalla Knowledge Graph Fact",
+  "type": "object",
+  "required": ["version", "kind", "graph_id", "name", "kb", "status", "relationship_sources", "included_relationships", "included_entities", "selection_rule", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "kind": { "type": "string", "const": "knowledge_graph_fact" },
+    "graph_id": { "type": "string" },
+    "name": { "type": "string" },
+    "kb": { "type": "string" },
+    "status": { "type": "string", "enum": ["active", "archived", "deprecated"] },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "created_by": { "type": "string", "enum": ["human", "llm", "script", "import"] },
+    "purpose": { "type": "string" },
+    "relationship_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["predicate_id", "fact_file"],
+        "properties": {
+          "predicate_id": { "type": "string" },
+          "fact_file": { "type": "string", "pattern": "^relationships/machine/.+\\.yaml$" }
+        }
+      }
+    },
+    "included_relationships": { "type": "array", "items": { "type": "string" } },
+    "included_entities": { "type": "array", "items": { "type": "string" } },
+    "selection_rule": { "type": "object" },
+    "layout": { "type": "object" },
+    "provenance": { "type": "object" }
+  }
+}

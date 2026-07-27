@@ -1,0 +1,11 @@
+Knowledge Entity:
+Provides a unique identifier (`entity_id`) for a knowledge item.
+The same knowledge item may be expressed differently across Resources, authors, or contexts, so a unified `entity_id` is required for normalized references.
+Without it, knowledge references can drift during organization, merging, citation, and graph construction.
+The same knowledge item may be split into multiple nodes, or different items may be incorrectly merged into one node, undermining the uniqueness, traceability, and relationship consistency of knowledge nodes in the Knowledge Graph.
+
+Distinction from a Resource:
+An Entity is an abstract knowledge object.
+An `entity_id` is the name of that abstract object.
+Different expressions of a piece of knowledge are abstract representations of the same knowledge Entity.
+A Resource is the carrier of knowledge.

@@ -1,0 +1,42 @@
+  - entity_id: "ent_000001"
+
+    canonical_name: "Knowledge Graph"
+    entity_type: "concept"        # concept | claim | method | object | event | variable | question | term
+
+    aliases:
+      - "knowledge graph"
+      - "KG"
+      - "knowledge relationship graph"
+
+    content_file: "entities/ent_000001_knowledge_graph.md"
+
+    description: >
+      A graph structure for expressing structured relationships among units of knowledge.
+
+    status: "active"              # draft | active | stale | deprecated | merged
+    content_status: "active"      # missing | draft | active | stale | deprecated
+    extraction_status: "partial"  # none | partial | complete | needs_review
+
+    language: "en-US"
+
+    tags:
+      - "knowledge management"
+      - "graph structure"
+
+    merge:
+      merged_to: null
+      reason: null
+
+    ingestion:
+      resource_refs:
+        - "res_000001"
+        - "res_000002"
+      last_ingested_at: "YYYY-MM-DD"
+      ingestion_note: >
+        The basic definition and key structure have been extracted from related Resources; application scenarios still need to be added.
+
+    metadata:
+      created_at: "YYYY-MM-DD"
+      updated_at: "YYYY-MM-DD"
+      created_by: "human"         # human | llm | script | import
+      note: null
