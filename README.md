@@ -14,11 +14,11 @@ This repository provides both Chinese and English versions. Please select the ve
 Valhalla/
 │
 ├── Chinese/
-│ ├── Valhalla/
-│ └── Tutorial/
+│ ├── valhalla/
+│ └── 教程/
 │
 └── English/
-├── Valhalla/
+├── valhalla/
 └── Tutorial/
 ```
 
