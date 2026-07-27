@@ -1,0 +1,76 @@
+contract:
+  name: admin_operation_contract
+  version: 0.5.11
+  purpose: |
+    切换系统状态
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    admin_enter:
+      triggers:
+      - 进入管理状态
+      - 进入管理模式
+      - 启动管理模式
+      - 进入管理员模式
+    admin_exit:
+      triggers:
+      - 退出管理状态
+      - 退出管理模式
+      - 停止管理模式
+      - 退出管理员模式
+      - 进入普通状态
+      - 进入base状态
+operations:
+  admin_enter:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 admin_enter：该操作只能在 base 状态下运行。
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/admin_enter.md
+      load_after_validation: true
+    output:
+      required: []
+  admin_exit:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 admin_exit：该操作只能在 admin 状态下运行。
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/admin_exit.md
+      load_after_validation: true
+    output:
+      required: []
+
+
+

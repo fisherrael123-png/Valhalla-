@@ -1,0 +1,65 @@
+contract:
+  name: register_resource_contract
+  version: 0.5.11
+  purpose: |
+    将当前 Valhalla root 的 Library 非公共目录中的资料文件登记为稳定 resource_id， 并维护该唯一信息对象的名称、表现文件、来源副本和公共副本。
+operations:
+  register_resource:
+    input:
+      required:
+      - resource_query
+      optional:
+      - canonical_name
+      - aliases
+      - information_identity
+      - representation_type
+      - note
+      pattern:
+        canonical: 注册资源 <文件名|Library相对路径|文件夹>
+        examples:
+        - 注册资源 attention.pdf
+        - 注册资源 Library/论文/attention.pdf
+        - 注册资源 Library/项目资料/论文文件夹
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 register_resource：该操作只能在 base 状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: resource_query_within_current_root_library
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：resource_query_within_current_root_library
+    access:
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - Library/public_resources/<resource_id>/
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/register_resource.md
+      load_after_validation: true
+    output:
+      required:
+      - resource_id
+      - canonical_name
+      - modified_files
+      - source_copies
+      - public_copies
+      - identity_conflicts
+
+
+

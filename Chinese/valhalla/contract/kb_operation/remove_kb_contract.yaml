@@ -1,0 +1,130 @@
+contract:
+  name: remove_kb_contract
+  version: 0.5.11
+  purpose: |
+    在当前 Valhalla root 下注销一个已登记知识库。
+    该操作从 wiki_registry.yaml/wiki_registry.md 移除知识库登记，
+    并在本 operation 的 fix 阶段同步清理 resource_registry.yaml/resource_registry.md usage。
+    本操作不删除 Wiki/Wiki_<知识库名>/ 目录或任何知识库内容文件。
+operations:
+  remove_kb:
+    input:
+      required:
+      - kb名称
+      optional: []
+      pattern:
+        canonical: 删除知识库 <kb名称>
+        examples:
+        - 删除知识库 测试库
+        - 移除知识库 测试库
+        - 注销知识库 测试库
+        - 从当前root移除知识库 测试库
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 remove_kb：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - idle
+        on_denied: 拒绝执行 remove_kb：该操作只能在 idle 状态下运行；请先退出当前知识库。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    - id: target_kb_registered
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_registered
+    - id: target_wiki_path_within_current_root_wiki
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_wiki_path_within_current_root_wiki
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<知识库名>/
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        denied:
+        - Wiki/Wiki_<知识库名>/
+        - Library/
+        - Library/public_resources/
+    output:
+      required:
+      - remove_kb_inspect_report
+      - remove_kb_report
+      - resource_usage_cleanup_report
+      - next_operation
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/remove_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - remove_kb_inspect_report
+          - resource_usage_cleanup_plan
+          - affected_resource_ids
+          - orphan_candidate_resource_ids
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - remove_kb_inspect_report
+          - resource_usage_cleanup_plan
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - 用户明确确认
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/remove_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - remove_kb_report
+          - removed_kb
+          - resource_usage_cleanup_report
+          - preserved_wiki_path
+          - next_operation
+          - modified_files
+          - current_state

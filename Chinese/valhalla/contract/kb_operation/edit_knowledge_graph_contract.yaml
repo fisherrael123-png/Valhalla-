@@ -1,0 +1,76 @@
+contract:
+  name: edit_knowledge_graph
+  version: 0.5.11
+  purpose: |
+    根据用户确认的关系类型与关系事实组合，创建、修改、整理当前知识库的 graph fact 登记表与具体 graph fact 文件。
+operations:
+  edit_knowledge_graph:
+    input:
+      required:
+      - user_request
+      - current_valhalla_root
+      - current_knowledge_base
+      optional:
+      - relationship_types
+      - graph_name
+      - selection_rule
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: |
+          拒绝执行 edit_knowledge_graph：必须在激活的知识库状态下才能修改 graph fact。
+    preconditions: []
+    access:
+      read_scope:
+        allowed:
+        - .valhalla/kb_status.md
+        - Wiki/Wiki_*/Wiki.md
+        - Wiki/Wiki_*/index.md
+        - Wiki/Wiki_*/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_*/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_*/.registry/human/relationship_registry.md
+        - Wiki/Wiki_*/relationships/machine/*.yaml
+        - Wiki/Wiki_*/relationships/human/*.md
+        - Wiki/Wiki_*/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_*/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_*/knowledge_graph/machine/*.yaml
+        - Wiki/Wiki_*/knowledge_graph/human/*.md
+        - Wiki/Wiki_*/entities/**
+      write_scope:
+        allowed:
+        - Wiki/Wiki_*/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_*/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_*/knowledge_graph/machine/*.yaml
+        - Wiki/Wiki_*/knowledge_graph/human/*.md
+        denied:
+        - Wiki/Wiki_*/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_*/.registry/human/entity_registry.md
+        - Wiki/Wiki_*/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_*/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_*/.registry/human/relationship_registry.md
+        - Wiki/Wiki_*/relationships/machine/*.yaml
+        - Wiki/Wiki_*/relationships/human/*.md
+        - Wiki/Wiki_*/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_*/.virtualDatabase/human/required_resources.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_*/.virtualDatabase/human/excluded_resources.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_*/entities/**
+        - resource_registry.yaml
+        - resource_registry.md
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/edit_knowledge_graph.md
+      load_after_validation: true
+    output:
+      required:
+      - edit_knowledge_graph_report

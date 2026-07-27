@@ -1,0 +1,53 @@
+contract:
+  name: ingest_conversation_contract
+  version: 0.5.11
+  purpose: |
+    将本次会话内容提取知识，构建一个特殊的entity库，实现知识的积累和沉淀。
+operations:
+  ingest_conversation:
+    input:
+      required: []
+      optional: []
+      pattern:
+        canonical: 摄入本次会话内容
+        examples:
+        - 将本次会话内容摄入知识库
+        - 归档本次会话内容到知识库
+        - 归档会话
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 ingest_conversation：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: 拒绝执行 ingest_conversation：该操作只能在 kb:<name> 状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest_conversation.md
+      load_after_validation: true
+    output:
+      required:
+      - ingest_conversation_report
+      - target_kb
+
+
+

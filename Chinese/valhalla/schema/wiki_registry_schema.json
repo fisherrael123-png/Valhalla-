@@ -1,0 +1,61 @@
+{
+  "type": "object",
+  "properties": {
+    "registry": {
+      "type": "string",
+      "const": "wiki_registry"
+    },
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "root": {
+      "type": ["string", "null"]
+    },
+    "wikis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kb_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "wiki_path": {
+            "type": "string",
+            "pattern": "^Wiki/Wiki_[^/\\\\]+$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "archived", "missing_path"]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kb_name",
+          "wiki_path",
+          "status",
+          "created_at",
+          "updated_at",
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "registry",
+    "version",
+    "root",
+    "wikis"
+  ],
+  "additionalProperties": false
+}

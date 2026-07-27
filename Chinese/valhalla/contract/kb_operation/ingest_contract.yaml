@@ -1,0 +1,86 @@
+contract:
+  name: ingest_contract
+  version: 0.5.11
+  purpose: |
+    从一个或多个 resource_id 对应的唯一资料信息中提取知识， 构建当前知识库中的 entity。
+operations:
+  ingest:
+    input:
+      required:
+      - resource_query
+      optional: []
+      pattern:
+        canonical: 摄入 <resource_id|文件名|Library相对路径|Library文件夹>
+        examples:
+        - 摄入 res_000001
+        - 摄入 attention.pdf
+        - 摄入 Library/论文/AIDD
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 ingest：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: 拒绝执行 ingest：该操作只能在 kb:<name> 状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    access:
+      read_scope:
+        allowed:
+        - resource_registry.yaml
+        - blacklist_registry.yaml
+        - Library/public_resources/
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<知识库名>/entities/
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<知识库名>/entities/
+        denied:
+        - Wiki/Wiki_<其他知识库名>/**
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest.md
+      load_after_validation: true
+    output:
+      required:
+      - completion_status
+      - resource_ids
+      - completed_resource_ids
+      - skipped_resource_queries
+      - registration_results
+      - failed_resources
+      - modified_files
+      - target_kb
+      - current_state
+      - next_operation
+
+
+

@@ -1,0 +1,225 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "entity_registry_schema.json",
+  "title": "Valhalla Entity Registry",
+  "description": "Registry of knowledge entities. Each entity points to a refined wiki content file.",
+  "type": "object",
+  "required": [
+    "version",
+    "kb",
+    "updated_at",
+    "entities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kb": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    }
+  },
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "required": [
+        "entity_id",
+        "canonical_name",
+        "entity_type",
+        "aliases",
+        "content_file",
+        "description",
+        "status",
+        "content_status",
+        "extraction_status",
+        "language",
+        "tags",
+        "ingestion",
+        "metadata"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "pattern": "^ent_[0-9]{6}$"
+        },
+        "canonical_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entity_type": {
+          "type": "string",
+          "enum": [
+            "concept",
+            "claim",
+            "method",
+            "object",
+            "event",
+            "variable",
+            "question",
+            "term"
+          ]
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "content_file": {
+          "type": "string",
+          "pattern": "^entities/ent_[0-9]{6}_[^/\\\\]+\\.md$"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "active",
+            "stale",
+            "deprecated",
+            "merged"
+          ]
+        },
+        "content_status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "draft",
+            "active",
+            "stale",
+            "deprecated"
+          ]
+        },
+        "extraction_status": {
+          "type": "string",
+          "enum": [
+            "none",
+            "partial",
+            "complete",
+            "needs_review"
+          ]
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "merge": {
+          "type": "object",
+          "required": [
+            "merged_to",
+            "reason"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "merged_to": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^ent_[0-9]{6}$"
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "ingestion": {
+          "type": "object",
+          "required": [
+            "resource_refs",
+            "last_ingested_at",
+            "ingestion_note"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "resource_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^res_[0-9]{6}$"
+              },
+              "uniqueItems": true
+            },
+            "last_ingested_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "ingestion_note": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "required": [
+            "created_at",
+            "updated_at",
+            "created_by"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "created_at": {
+              "type": "string",
+              "format": "date"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date"
+            },
+            "created_by": {
+              "type": "string",
+              "enum": [
+                "human",
+                "llm",
+                "script",
+                "import"
+              ]
+            },
+            "note": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

@@ -1,0 +1,109 @@
+contract:
+  name: ingest_engineering_entity
+  version: 0.5.11
+  purpose: |
+    管理当前知识库中的 engineering entity。 engineering entity 用于记录工程实现相关的知识点，如设计决策、实现说明、工程文件等.
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    ingest_engineering:
+      triggers:
+      - 摄入工程经验
+      - 归档工程经验
+      - 记录工程实体
+    init_engineering_entities:
+      triggers:
+      - 初始化工程实体
+      - 初始化 engineering entity
+operations:
+  ingest_engineering:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: |
+          拒绝执行 ingest_engineering： 该操作只能在 admin 状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: |
+          拒绝执行 ingest_engineering： 该操作只能在 kb:<name> 状态下运行。
+    preconditions:
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<知识库名>/
+      on_failed: 必需路径不存在：Wiki/Wiki_<知识库名>/
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<知识库名>/.registry/machine/engineering_entity_registry.yaml
+      on_failed: 必需路径不存在：Wiki/Wiki_<知识库名>/.registry/machine/engineering_entity_registry.yaml
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<知识库名>/engineering_entities/
+      on_failed: 必需路径不存在：Wiki/Wiki_<知识库名>/engineering_entities/
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest_engineering_entity.md
+      load_after_validation: true
+    output:
+      required:
+      - ingest_engineering_entity_report
+      - target_kb
+  init_engineering_entities:
+    intent: |
+      初始化当前知识库的 engineering entity 结构， 创建 engineering_entity_registry.yaml 和 engineering_entities/ 目录。
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: |
+          拒绝执行 init_engineering_entities：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: |
+          拒绝执行 init_engineering_entities：该操作只能在某个知识库激活状态下运行。
+    preconditions:
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<知识库名>/
+      on_failed: 必需路径不存在：Wiki/Wiki_<知识库名>/
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest_engineering_entity.md
+      load_after_validation: true
+    output:
+      required:
+      - init_engineering_entity_report
+      - target_kb
+
+
+

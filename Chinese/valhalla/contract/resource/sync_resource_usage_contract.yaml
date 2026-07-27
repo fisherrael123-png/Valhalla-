@@ -1,0 +1,134 @@
+contract:
+  name: sync_resource_usage_contract
+  version: 0.5.11
+  purpose: |
+    以当前 root 的 wiki_registry.yaml 为知识库登记权威，
+    从已登记知识库的 entity_registry.yaml 与 entity_resource_map.yaml 重建 resource_registry.yaml
+    中的 usage.referenced_by 与 reference_count，并清理指向未注册知识库的历史 usage。
+operations:
+  sync_resource_usage:
+    input:
+      required: []
+      optional:
+      - target_kb_name
+      - target_root_path
+      - dry_run
+      pattern:
+        canonical: 同步resource usage
+        examples:
+        - 同步resource usage
+        - 清理历史resource usage
+        - 重建资源引用索引
+        - 同步resource usage ai工程
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        - admin
+        on_denied: 拒绝执行 sync_resource_usage：该操作只能在 base 或 admin 状态下运行。
+      kb_status:
+        allowed:
+        - idle
+        - kb:<name>
+        on_denied: 拒绝执行 sync_resource_usage：该操作只能在 idle 或 kb:<name> 状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: wiki_registry_readable
+      type: builtin
+      parameters: {}
+      on_failed: 当前 root 的 wiki_registry.yaml 不可读取。
+    - id: resource_registry_readable
+      type: builtin
+      parameters: {}
+      on_failed: 当前 root 的 resource_registry.yaml 不可读取。
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - resource_registry.yaml
+        - resource_registry.md
+        - target_root_path/wiki_registry.yaml
+        - target_root_path/resource_registry.yaml
+        - target_root_path/resource_registry.md
+        - Wiki/Wiki_<已登记知识库>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<已登记知识库>/.registry/machine/entity_resource_map.yaml
+        - target_root_path/Wiki/Wiki_<已登记知识库>/.registry/machine/entity_registry.yaml
+        - target_root_path/Wiki/Wiki_<已登记知识库>/.registry/machine/entity_resource_map.yaml
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - target_root_path/resource_registry.yaml
+        - target_root_path/resource_registry.md
+        denied:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Wiki/
+        - Library/
+        - Library/public_resources/
+    output:
+      required:
+      - sync_resource_usage_inspect_report
+      - sync_resource_usage_report
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/resource_operation/sync_resource_usage.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - sync_resource_usage_inspect_report
+          - target_usage_index
+          - stale_usage_entries
+          - missing_usage_entries
+          - affected_resource_ids
+          - missing_resource_ids
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - sync_resource_usage_inspect_report
+          - target_usage_index
+          - stale_usage_entries
+          - missing_usage_entries
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - 用户明确确认
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/resource_operation/sync_resource_usage.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - sync_resource_usage_report
+          - modified_files
+          - current_state

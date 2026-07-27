@@ -1,0 +1,175 @@
+contract:
+  name: lint
+  version: 0.5.11
+  purpose: |
+    检查 Valhalla root 或知识库结构、索引、注册表、资料表、实体文件、 关系文件、知识图谱文件、对话实体和工程实体的一致性； 并在用户明确确认后，修复检查报告中已经列出的低风险问题。
+operations:
+  lint:
+    intent: |
+      检查当前知识库、指定知识库、所有知识库，或执行深度检查； 检查完成后，可询问用户是否修复已列出的可自动修复问题。
+    input:
+      required: []
+      optional:
+      - kb_name
+      - scope
+      - depth
+      - target_path
+      - fix_confirmed
+      - selected_issue_ids
+      - dry_run
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 lint：必须处于 admin 状态。
+    preconditions: []
+    access: {}
+    output:
+      required:
+      - lint_report
+      - lint_fix_report
+      - next_operation
+    constraints:
+      write_constraints:
+        require_user_confirmation: true
+        write_allowed_only_after:
+        - 已经完成本次 lint 检查。
+        - 已经生成 lint_report。
+        - 修复项已经在 lint_report 中明确列出。
+        - '修复项标记为 fixable: true。'
+        - '修复项标记为 requires_confirmation: false。'
+        - 用户明确确认执行修复。
+      scope_values:
+        current_kb: 检查当前知识库。
+        named_kb: 检查指定知识库。
+        all_kbs: 检查所有知识库。
+        root: 检查 Valhalla root 基础结构。
+        file: 检查指定文件。
+      depth_values:
+        normal: 常规检查：检查结构、必需文件、路径引用、schema 可解析性。
+        deep: 深度检查：额外检查跨文件一致性、孤儿实体、未登记引用、重复实体、资料有效范围。
+      default:
+        scope: current_kb
+        depth: normal
+        dry_run: false
+        fix_confirmed: false
+      must_do:
+      - 先执行只读检查。
+      - 先输出 lint_report。
+      - 列出可自动修复项。
+      - 深度检查必须报告 entity_registry 中 content_file 指向但正文文件不存在的 entity。
+      - 在任何写入前询问用户是否修复。
+      - 只有用户明确确认后，才进入修复阶段。
+      must_not:
+      - 不得在检查阶段修改、创建、删除、移动任何文件。
+      - 不得跳过 lint_report 直接修复。
+      - 不得修复 lint_report 中没有列出的问题。
+      - 不得重写知识内容。
+      - 不得合并实体。
+      - 不得拆分实体。
+      - 不得删除资料、实体、关系或图谱节点，除非用户在报告后单独明确允许。
+      - 不得猜测缺失内容。
+      - 不得把不确定问题当作可自动修复问题。
+      - 不得把缺失 entity context 自动重写或重新生成。
+      require_separate_confirmation_when:
+      - 需要删除文件。
+      - 需要移动文件。
+      - 需要改写实体正文内容。
+      - 需要合并或拆分 entity。
+      - 需要改变资料表的有效资料范围。
+      - 需要影响多个知识库。
+      - 需要直接修改 resource_registry.yaml 的非 usage 字段。
+      - 需要修改剔除资料表。
+      resource_table_cleanup:
+        authority: 三张 YAML 资料表
+        human_projection: 三张同名 Markdown 资料表
+        active_rule: 只有 membership_status == active 的条目参与有效资料库。
+        pending_removal_rule: |
+          删除操作只标记 pending_removal；经 lint_report 列出并由用户确认后， lint 才批量从 YAML 物理移除并删除 Markdown 待清理行。
+        refresh_fields:
+        - canonical_name
+        - current_source_paths
+        - resource_type_and_version
+        - membership_status
+        - added_via
+        - added_at
+        - removed_at
+        - note
+      missing_entity_content_cleanup:
+        issue_type: missing_entity_content_file
+        inspect_rule: |
+          depth=deep 时，检查当前或指定知识库的 .registry/machine/entity_registry.yaml。
+          如果某个 entity 的 content_file 是合法的 entities/ 相对路径，但目标正文文件不存在，
+          则在 lint_report 中列出 missing_entity_content_file 问题。
+        fix_rule: |
+          只有用户确认修复本次 lint_report 中的 missing_entity_content_file 问题后，才能清理登记信息。
+          修复只允许从 entity_registry.yaml 删除缺失正文对应的 entity 条目，
+          从 entity_resource_map.yaml 删除该 entity_id 的映射，并重建两个 human Markdown 投影。
+          然后在同一 fix 中重建 resource_registry.yaml/md usage，不输出后续 usage 同步操作。
+        modified_files:
+        - .registry/machine/entity_registry.yaml
+        - .registry/human/entity_registry.md
+        - .registry/machine/entity_resource_map.yaml
+        - .registry/human/entity_resource_map.md
+        - resource_registry.yaml
+        - resource_registry.md
+        must_not_modify:
+        - Library/
+        - Library/public_resources/
+        - entities/
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/lint/lint.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - lint_report
+          - fixable_issue_ids
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - lint_report
+          - fixable_issue_ids
+        input:
+          required:
+          - selected_issue_ids
+          optional: []
+        constraints:
+        - selected_issues_must_exist_in_lint_report
+        - selected_issues_must_be_fixable
+        - selected_issues_must_not_require_separate_confirmation
+        executor:
+          type: workflow
+          paths:
+          - workflows/lint/lint.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - lint_fix_report
+          - next_operation
+          - modified_files
+
+
+

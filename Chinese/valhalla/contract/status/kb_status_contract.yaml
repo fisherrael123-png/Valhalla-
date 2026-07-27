@@ -1,0 +1,29 @@
+contract:
+  name: kb_status_contract
+  version: 0.5.11
+  purpose: |
+    列出当前valhalla root下，知识库的状态。
+operations:
+  kb_status:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: command
+      command:
+      - python
+      - scripts/kb_status.py
+    output:
+      required: []
+
+
+

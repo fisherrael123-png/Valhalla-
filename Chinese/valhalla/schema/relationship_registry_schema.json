@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Valhalla Relationship Fact File Registry",
+  "type": "object",
+  "required": ["version", "kind", "kb", "updated_at", "relationship_fact_files"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "kind": { "type": "string", "const": "relationship_registry" },
+    "kb": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "description": { "type": "string" },
+    "relationship_fact_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["predicate_id", "machine_fact_path", "human_fact_path", "relationship_count", "status", "updated_at"],
+        "additionalProperties": false,
+        "properties": {
+          "predicate_id": { "type": "string" },
+          "predicate_name": { "type": "string" },
+          "predicate_zh_name": { "type": "string" },
+          "machine_fact_path": { "type": "string", "pattern": "^relationships/machine/.+\\.yaml$" },
+          "human_fact_path": { "type": "string", "pattern": "^relationships/human/.+\\.md$" },
+          "relationship_count": { "type": "integer", "minimum": 0 },
+          "status": { "type": "string", "enum": ["active", "archived", "deprecated"] },
+          "updated_at": { "type": "string" },
+          "description": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

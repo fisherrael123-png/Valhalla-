@@ -1,0 +1,74 @@
+contract:
+  name: edit_resource_table_contract
+  version: 0.5.11
+  purpose: |
+    编辑当前知识库的资料成员关系。YAML 是机器权威表， 同名 Markdown 是包含加入时输入和当前来源路径的人类可读投影。
+operations:
+  edit_resource_table:
+    input:
+      required:
+      - target_table
+      - action
+      - resource_query
+      optional:
+      - note
+      pattern:
+        canonical: <资料表名称> <添加|删除> <resource_id|文件名|Library相对路径>
+        examples:
+        - 必须资料表添加 res_000001
+        - 本库资料表添加 attention.pdf
+        - 剔除资料表添加 Library/论文/problematic.pdf
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: 拒绝执行 edit_resource_table：该操作只能在某个知识库被激活的状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: machine_and_human_resource_tables_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：machine_and_human_resource_tables_known
+    access:
+      write_scope:
+        allowed:
+        - Wiki/Wiki_<知识库名>/<资料表名称>.yaml
+        - Wiki/Wiki_<知识库名>/<资料表名称>.md
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/edit_resource_table.md
+      load_after_validation: true
+    output:
+      required:
+      - resource_id
+      - membership_status
+      - machine_table
+      - human_table
+      - modified_files
+      - target_kb
+      - current_state
+    constraints:
+      target_table_values:
+        local_resources:
+          aliases:
+          - 本库资料表
+        required_resources:
+          aliases:
+          - 必须资料表
+        excluded_resources:
+          aliases:
+          - 剔除资料表
+
+
+

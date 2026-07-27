@@ -1,0 +1,344 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resource_registry_schema.json",
+  "title": "Valhalla Resource Registry",
+  "description": "资源层权威注册表。一个 resource_id 表示一份内容与版本均唯一的信息对象。",
+  "type": "object",
+  "required": ["version", "registry", "root_scope", "updated_at", "resources"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 2
+    },
+    "registry": {
+      "type": "string",
+      "const": "resource_registry"
+    },
+    "root_scope": {
+      "type": "string",
+      "const": "current_root"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "resource_id",
+          "identity",
+          "bibliographic",
+          "representations",
+          "lifecycle",
+          "usage",
+          "policy",
+          "metadata"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "resource_id": {
+            "type": "string",
+            "pattern": "^res_[0-9]{6}$"
+          },
+          "identity": {
+            "type": "object",
+            "required": ["canonical_name", "aliases", "information_identity"],
+            "additionalProperties": false,
+            "properties": {
+              "canonical_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "aliases": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "required": ["name", "type", "language"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["common", "translated_title", "abbreviation", "filename", "other"]
+                    },
+                    "language": {
+                      "type": ["string", "null"]
+                    }
+                  }
+                }
+              },
+              "information_identity": {
+                "type": "object",
+                "required": [
+                  "resource_type",
+                  "edition",
+                  "version",
+                  "language",
+                  "published_at",
+                  "doi",
+                  "url"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "resource_type": {
+                    "type": "string",
+                    "enum": ["paper", "book", "note", "web", "dataset", "code", "image", "other"]
+                  },
+                  "edition": {
+                    "type": ["string", "null"]
+                  },
+                  "version": {
+                    "type": ["string", "null"]
+                  },
+                  "language": {
+                    "type": ["string", "null"]
+                  },
+                  "published_at": {
+                    "type": ["string", "null"],
+                    "format": "date"
+                  },
+                  "doi": {
+                    "type": ["string", "null"]
+                  },
+                  "url": {
+                    "type": ["string", "null"]
+                  }
+                }
+              }
+            }
+          },
+          "bibliographic": {
+            "type": "object",
+            "required": ["authors", "year", "venue"],
+            "additionalProperties": false,
+            "properties": {
+              "authors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "year": {
+                "type": ["integer", "null"],
+                "minimum": 0
+              },
+              "venue": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "representations": {
+            "type": "array",
+            "minItems": 1,
+            "contains": {
+              "type": "object",
+              "properties": {
+                "representation_type": {
+                  "const": "authoritative"
+                }
+              },
+              "required": ["representation_type"]
+            },
+            "minContains": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "file_id",
+                "representation_type",
+                "format",
+                "media_type",
+                "derived_from",
+                "source_copies",
+                "public_copy",
+                "sync_status"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "file_id": {
+                  "type": "string",
+                  "pattern": "^file_[0-9]{6}$"
+                },
+                "representation_type": {
+                  "type": "string",
+                  "enum": ["authoritative", "duplicate", "converted", "ocr", "extracted_text"]
+                },
+                "format": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "media_type": {
+                  "type": ["string", "null"]
+                },
+                "derived_from": {
+                  "type": ["string", "null"],
+                  "pattern": "^file_[0-9]{6}$"
+                },
+                "source_copies": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": ["path", "local_name", "sha256", "availability", "checked_at"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "path": {
+                        "type": "string",
+                        "pattern": "^Library/(?!public_resources/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
+                      },
+                      "local_name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "sha256": {
+                        "type": ["string", "null"],
+                        "pattern": "^[A-Fa-f0-9]{64}$"
+                      },
+                      "availability": {
+                        "type": "string",
+                        "enum": ["present", "missing"]
+                      },
+                      "checked_at": {
+                        "type": "string",
+                        "format": "date"
+                      }
+                    }
+                  }
+                },
+                "public_copy": {
+                  "type": "object",
+                  "required": ["path", "sha256", "availability", "checked_at"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "pattern": "^Library/public_resources/res_[0-9]{6}/.+"
+                    },
+                    "sha256": {
+                      "type": ["string", "null"],
+                      "pattern": "^[A-Fa-f0-9]{64}$"
+                    },
+                    "availability": {
+                      "type": "string",
+                      "enum": ["present", "missing"]
+                    },
+                    "checked_at": {
+                      "type": "string",
+                      "format": "date"
+                    }
+                  }
+                },
+                "sync_status": {
+                  "type": "string",
+                  "enum": ["in_sync", "stale", "missing_source", "missing_public", "unchecked"]
+                }
+              }
+            }
+          },
+          "lifecycle": {
+            "type": "object",
+            "required": ["status", "changed_at", "reason"],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["active", "deprecated", "deleted"]
+              },
+              "changed_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "reason": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "usage": {
+            "type": "object",
+            "required": ["referenced_by", "reference_count", "computed_at"],
+            "additionalProperties": false,
+            "properties": {
+              "referenced_by": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "required": ["kb_name", "entity_id", "entity_file"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "kb_name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "entity_id": {
+                      "type": "string",
+                      "pattern": "^ent_[0-9]{6}$"
+                    },
+                    "entity_file": {
+                      "type": "string",
+                      "pattern": "^Wiki/Wiki_[^/\\\\]+/entities/ent_[0-9]{6}[^/]*\\.md$"
+                    }
+                  }
+                }
+              },
+              "reference_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "computed_at": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "policy": {
+            "type": "object",
+            "required": ["blacklist_status", "blacklist_id", "computed_at"],
+            "additionalProperties": false,
+            "properties": {
+              "blacklist_status": {
+                "type": "string",
+                "enum": ["not_listed", "listed"]
+              },
+              "blacklist_id": {
+                "type": ["string", "null"],
+                "pattern": "^bl_[0-9]{6}$"
+              },
+              "computed_at": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "required": ["created_at", "updated_at", "note"],
+            "additionalProperties": false,
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date"
+              },
+              "note": {
+                "type": ["string", "null"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

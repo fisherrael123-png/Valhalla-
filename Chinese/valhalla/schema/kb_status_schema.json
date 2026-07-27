@@ -1,0 +1,81 @@
+﻿{
+  "title": "Valhalla KB Status Schema",
+  "description": "校验 <valhalla-root>/.valhalla/kb_status.md。该文件描述当前会话进程使用哪个知识库。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kb_status",
+    "target_wiki_path"
+  ],
+  "properties": {
+    "kb_status": {
+      "type": "string",
+      "description": "idle 表示未启动知识库；kb:<name> 表示当前激活的知识库。",
+      "oneOf": [
+        {
+          "const": "idle",
+          "description": "当前未启动知识库。"
+        },
+        {
+          "pattern": "^kb:[^\\s:/\\\\]+$",
+          "description": "当前已激活某个知识库，例如 kb:victor。"
+        }
+      ]
+    },
+    "target_wiki_path": {
+      "description": "当前激活知识库的 Wiki 路径；idle 状态下必须为 null。",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^Wiki/Wiki_[^\\s:/\\\\]+$"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kb_status": {
+            "const": "idle"
+          }
+        },
+        "required": [
+          "kb_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_wiki_path": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kb_status": {
+            "pattern": "^kb:"
+          }
+        },
+        "required": [
+          "kb_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "target_wiki_path": {
+            "type": "string",
+            "pattern": "^Wiki/Wiki_[^\\s:/\\\\]+$"
+          }
+        }
+      }
+    }
+  ]
+}
+
+

@@ -1,0 +1,6 @@
+﻿interface:
+  display_name: "Valhalla"
+  short_description: "一个面向交叉学科研究团队的本地项目工作环境"
+  default_prompt: "使用 $valhalla 管理本地知识库或基于当前知识库推进项目。"
+
+

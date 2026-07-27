@@ -1,0 +1,53 @@
+contract:
+  name: start_kb_contract
+  version: 0.5.11
+  purpose: |
+    在当前valhalla root下启动一个知识库或切换到另一个知识库。
+operations:
+  start_kb:
+    input:
+      required:
+      - kb名称
+      optional: []
+      pattern:
+        canonical: 启动kb <kb名称>
+        examples:
+        - 启动知识库-测试库
+        - 启动知识库，名称为测试库
+        - 启动kb 测试库
+        - 切换到知识库-测试库
+        - 切换到kb 测试库
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 start_kb：该操作只能在 base 状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/start_kb.md
+      load_after_validation: true
+    output:
+      required:
+      - modified_files
+      - target_kb
+      - current_state
+
+
+

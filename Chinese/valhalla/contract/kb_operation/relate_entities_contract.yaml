@@ -1,0 +1,70 @@
+contract:
+  name: relate_entities_contract
+  version: 0.5.11
+  purpose: |
+    关联知识库中的实体，并按 predicate/type 写入 relationship fact 文件。
+operations:
+  relate_entities:
+    input:
+      required: []
+      optional:
+      - entity_scope
+      - relationship_focus
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 relate_entities：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: 拒绝执行 relate_entities：该操作只能在某个知识库被激活的状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    access:
+      read_scope:
+        allowed:
+        - resource_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<知识库名>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<知识库名>/relationships/machine/*.yaml
+        - Wiki/Wiki_<知识库名>/relationships/human/*.md
+        - Wiki/Wiki_<知识库名>/entities/
+        - Library/public_resources/
+      write_scope:
+        allowed:
+        - Wiki/Wiki_<知识库名>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<知识库名>/relationships/machine/*.yaml
+        - Wiki/Wiki_<知识库名>/relationships/human/*.md
+        denied:
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<知识库名>/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_<知识库名>/knowledge_graph/
+        - Wiki/Wiki_<知识库名>/entities/
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/relate_entities.md
+      load_after_validation: true
+    output:
+      required:
+      - relate_entities_report

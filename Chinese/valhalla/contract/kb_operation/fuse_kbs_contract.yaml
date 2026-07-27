@@ -1,0 +1,179 @@
+contract:
+  name: fuse_kbs_contract
+  version: 0.5.11
+  purpose: |
+    在当前 Valhalla root 内，把用户显式指定的多个已登记知识库只读审核后，
+    融合为一个新的目标知识库。该操作不融合 root，不支持自动选择当前 root
+    下全部知识库，不修改来源知识库、resource_registry 或 Library。
+operations:
+  fuse_kbs:
+    input:
+      required:
+      - 来源知识库列表
+      - 目标知识库名称
+      optional: []
+      pattern:
+        canonical: 融合知识库 <来源知识库A>, <来源知识库B>, <来源知识库C> 为 <新知识库>
+        examples:
+        - 融合知识库 RAG论文库, Agent工程库 为 综合知识库
+        - 合并知识库 测试库A，测试库B，测试库C 为 新综合库
+        unsupported:
+        - 融合当前root全部知识库为 新综合库
+        - 融合所有知识库
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 fuse_kbs：该操作只能在 admin 状态下运行。
+      kb_status:
+        allowed:
+        - idle
+        on_denied: 拒绝执行 fuse_kbs：融合知识库前必须先退出当前知识库。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: source_kbs_minimum_count
+      type: input_validation
+      parameters:
+        min_count: 2
+        source: 来源知识库列表
+      on_failed: 前置条件未满足：至少需要 2 个来源知识库。
+    - id: source_kbs_registered_in_current_root
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：所有来源知识库必须已登记在当前 root 的 wiki_registry.yaml 中。
+    - id: source_wiki_paths_within_current_root_wiki
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：所有来源知识库目录都必须位于当前 root 的 Wiki/ 下。
+    - id: target_kb_name_available
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：目标知识库名称已经存在或目标目录已经存在。
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<来源知识库名>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<来源知识库名>/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_<来源知识库名>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<来源知识库名>/.virtualDatabase/human/required_resources.md
+        - Wiki/Wiki_<来源知识库名>/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_<来源知识库名>/.virtualDatabase/human/excluded_resources.md
+        - Wiki/Wiki_<来源知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<来源知识库名>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<来源知识库名>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<来源知识库名>/.registry/machine/conversation_entity_registry.yaml
+        - Wiki/Wiki_<来源知识库名>/.registry/machine/engineering_entity_registry.yaml
+        - Wiki/Wiki_<来源知识库名>/entities/*.md
+        - Wiki/Wiki_<来源知识库名>/relationships/machine/*.yaml
+        - Wiki/Wiki_<来源知识库名>/relationships/human/*.md
+        - Wiki/Wiki_<来源知识库名>/conversation_entities/*.md
+        - Wiki/Wiki_<来源知识库名>/engineering_entities/*.md
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<目标知识库名>/
+        - Wiki/Wiki_<目标知识库名>/.virtualDatabase/machine/*.yaml
+        - Wiki/Wiki_<目标知识库名>/.virtualDatabase/human/*.md
+        - Wiki/Wiki_<目标知识库名>/.registry/machine/*.yaml
+        - Wiki/Wiki_<目标知识库名>/.registry/human/*.md
+        - Wiki/Wiki_<目标知识库名>/entities/*.md
+        - Wiki/Wiki_<目标知识库名>/relationships/machine/*.yaml
+        - Wiki/Wiki_<目标知识库名>/relationships/human/*.md
+        - Wiki/Wiki_<目标知识库名>/conversation_entities/*.md
+        - Wiki/Wiki_<目标知识库名>/engineering_entities/*.md
+        - Wiki/Wiki_<目标知识库名>/.valhalla/imports/kb_fusion_<timestamp>/
+        denied:
+        - Wiki/Wiki_<来源知识库名>/
+        - Library/
+        - Library/public_resources/
+        - knowledge_graph/
+        - root fusion audit directories
+    output:
+      required:
+      - fuse_kbs_inspect_report
+      - fuse_kbs_plan
+      - entity_merge_decisions
+      - conversation_merge_decisions
+      - engineering_merge_decisions
+      - relationship_fusion_plan
+      - excluded_but_used_resources
+      - fuse_kbs_report
+      - target_kb
+      - next_operation
+      - modified_files
+      - current_state
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/fuse_kbs.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - fuse_kbs_inspect_report
+          - fuse_kbs_plan
+          - entity_merge_decisions
+          - conversation_merge_decisions
+          - engineering_merge_decisions
+          - relationship_fusion_plan
+          - excluded_but_used_resources
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - fuse_kbs_inspect_report
+          - fuse_kbs_plan
+          - entity_merge_decisions
+          - conversation_merge_decisions
+          - engineering_merge_decisions
+          - relationship_fusion_plan
+          - excluded_but_used_resources
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - 用户明确确认
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/fuse_kbs.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - fuse_kbs_report
+          - target_kb
+          - next_operation
+          - modified_files
+          - current_state

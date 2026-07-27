@@ -1,0 +1,28 @@
+contract:
+  name: status_contract
+  version: 0.5.11
+  purpose: |
+    同时查询 Valhalla 系统状态和当前 root 下的知识库会话状态。
+operations:
+  status:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: command
+      command:
+      - python
+      - scripts/status.py
+    output:
+      required:
+      - os_status
+      - kb_status

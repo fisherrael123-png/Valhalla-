@@ -1,0 +1,126 @@
+contract:
+  name: blacklist_operation
+  version: 0.5.11
+  status: active
+  purpose: |
+    通过人类提供的文件名或 Library 相对路径解析稳定 resource_id， 并对整个资源执行查看、添加或移除全局黑名单操作。
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    list_blacklist:
+      triggers:
+      - 查看黑名单
+      - 列出黑名单资料
+    add_blacklist:
+      triggers:
+      - 将某个资料加入黑名单
+      - 把某个资料文件拉黑
+    remove_blacklist:
+      triggers:
+      - 从黑名单移除某个资料
+      - 不再拉黑某个资料
+operations:
+  list_blacklist:
+    intent: 查看全局黑名单资源。
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/blacklist_operation.md
+      load_after_validation: true
+    output:
+      required:
+      - blacklist_list_report
+  add_blacklist:
+    intent: 解析人类输入并拉黑整个 resource_id。
+    input:
+      required:
+      - resource_query
+      - reason
+      optional:
+      - evidence
+      - note
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 add_blacklist：添加黑名单资料必须在 admin 状态下运行。
+    preconditions: []
+    access:
+      write_scope:
+        allowed:
+        - blacklist_registry.yaml
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_*/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_*/.virtualDatabase/human/required_resources.md
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/register_resource.md
+      - workflows/resource_operation/blacklist_operation.md
+      load_after_validation: true
+    output:
+      required:
+      - blacklist_add_report
+  remove_blacklist:
+    intent: 移除 resource_id 的全局黑名单状态。
+    input:
+      required:
+      - blacklist_id
+      optional:
+      - reason
+      - evidence
+      - note
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 remove_blacklist：移除黑名单资料必须在 admin 状态下运行。
+    preconditions: []
+    access:
+      write_scope:
+        allowed:
+        - blacklist_registry.yaml
+        - resource_registry.yaml
+        - resource_registry.md
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/blacklist_operation.md
+      load_after_validation: true
+    output:
+      required:
+      - blacklist_remove_report
+
+
+

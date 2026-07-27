@@ -1,0 +1,82 @@
+contract:
+  name: query_contract
+  version: 0.5.11
+  purpose: |
+    使用当前知识库中的知识进行问答。
+operations:
+  query:
+    input:
+      required:
+      - query_text
+      optional:
+      - query_scope
+      - allow_network_search
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 query：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: 拒绝执行 query：该操作只能在某个知识库被激活的状态下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    access:
+      read_scope:
+        allowed:
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<知识库名>/entities/
+        - Wiki/Wiki_<知识库名>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_<知识库名>/knowledge_graph/
+        - Wiki/Wiki_<知识库名>/.registry/machine/conversation_entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/conversation_entity_registry.md
+        - Wiki/Wiki_<知识库名>/conversation_entities/
+        - Wiki/Wiki_<知识库名>/.registry/machine/engineering_entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/engineering_entity_registry.md
+        - Wiki/Wiki_<知识库名>/engineering_entities/
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/excluded_resources.yaml
+        - resource_registry.yaml
+        - blacklist_registry.yaml
+        - Library/public_resources/
+      restrictions:
+        - 只读取有效资料库中的 resource_id
+        - 不读取 excluded_resources 或 blacklist_registry 中的资源
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/query.md
+      load_after_validation: true
+    output:
+      required:
+      - answer
+      - target_kb
+      - knowledge_used
+      - source_records
+      - external_sources
+      - inferences
+      - conflicts
+      - uncertainty
+      - suggested_follow_up
+
+
+

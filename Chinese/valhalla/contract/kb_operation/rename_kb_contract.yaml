@@ -1,0 +1,123 @@
+contract:
+  name: rename_kb_contract
+  version: 0.5.11
+  purpose: |
+    在当前 Valhalla root 下修改一个已登记知识库的名称，并同步更新知识库目录、
+    root 知识库注册表和知识库内部的名称标记。该操作不删除资料，不修改资源注册表，
+    不修改 Library。
+operations:
+  rename_kb:
+    input:
+      required:
+      - 旧知识库名称
+      - 新知识库名称
+      optional: []
+      pattern:
+        canonical: 重命名知识库 <旧知识库名称> 为 <新知识库名称>
+        examples:
+        - 重命名知识库 测试库m 为 RAG论文库
+        - 修改知识库名称，把 测试库m 改成 RAG论文库
+        - 知识库改名：测试库m -> RAG论文库
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 rename_kb：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - idle
+        on_denied: 拒绝执行 rename_kb：修改知识库名称前必须先退出当前知识库。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: source_kb_registered
+      type: builtin
+      parameters: {}
+      on_failed: 旧知识库名称未在当前 root 中登记。
+    - id: target_kb_name_available
+      type: builtin
+      parameters: {}
+      on_failed: 新知识库名称已经存在或目标目录已经存在。
+    - id: source_wiki_path_within_current_root_wiki
+      type: builtin
+      parameters: {}
+      on_failed: 旧知识库目录不在当前 root 的 Wiki/ 下，不能自动改名。
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Wiki/Wiki_<旧知识库名称>/
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<旧知识库名称>/
+        - Wiki/Wiki_<新知识库名称>/
+        denied:
+        - Library/
+        - Library/public_resources/
+        - 其他知识库目录
+    output:
+      required:
+      - rename_kb_inspect_report
+      - rename_kb_report
+      - next_operation
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/rename_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - rename_kb_inspect_report
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - rename_kb_inspect_report
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - 用户明确确认
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/rename_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - rename_kb_report
+          - renamed_kb
+          - moved_paths
+          - next_operation
+          - modified_files
+          - current_state

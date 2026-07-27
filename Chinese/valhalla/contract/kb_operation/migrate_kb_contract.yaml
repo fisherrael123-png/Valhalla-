@@ -1,0 +1,199 @@
+contract:
+  name: migrate_kb_contract
+  version: 0.5.11
+  purpose: |
+    将一个已登记的非当前 Valhalla root 中的一个已登记知识库，只读审核后迁移到
+    当前 root。迁移会把来源 root 的 resource_id 重写为当前 root 的 resource_id，
+    必要时复制公共资料，并在当前 root 的 wiki_registry.yaml/md 中完成最终登记。
+    来源 root 与来源知识库全程只读。
+operations:
+  migrate_kb:
+    input:
+      required:
+      - 来源知识库定位符
+      optional:
+      - 目标知识库新名称
+      pattern:
+        canonical: 迁移知识库 <root_alias>:<知识库名> [新名称 <目标知识库名>]
+        path_form: 迁移知识库 <已登记来源知识库绝对路径> [新名称 <目标知识库名>]
+        examples:
+        - 迁移知识库 root2:ai工程
+        - 迁移知识库 root2:ai工程 新名称 ai工程迁移版
+        - 迁移知识库 E:\valhallaroot2\Wiki\Wiki_ai工程
+        - 迁移知识库 E:\valhallaroot2\Wiki\Wiki_ai工程 新名称 ai工程迁移版
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 migrate_kb：该操作只能在 admin 状态下运行。
+      kb_status:
+        allowed:
+        - idle
+        on_denied: 拒绝执行 migrate_kb：迁移知识库前必须先退出当前知识库。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: source_root_registered
+      type: builtin
+      parameters: {}
+      on_failed: 来源 root 必须已登记。
+    - id: source_root_not_current_root
+      type: builtin
+      parameters: {}
+      on_failed: 来源 root 不能是当前 root；同 root 内操作应使用其他知识库服务。
+    - id: source_kb_registered_in_source_root
+      type: builtin
+      parameters: {}
+      on_failed: 来源知识库必须登记在来源 root 的 wiki_registry.yaml 中。
+    - id: source_kb_path_registered_when_path_input
+      type: builtin
+      parameters: {}
+      on_failed: 路径输入必须精确匹配某个已登记非当前 root 的 wiki_registry.yaml 条目。
+    - id: source_kb_minimal_structure_exists
+      type: builtin
+      parameters: {}
+      on_failed: 来源知识库缺少最低结构，不能迁移。
+    - id: target_kb_name_available
+      type: builtin
+      parameters: {}
+      on_failed: 目标知识库名称已在当前 root 登记；请使用“新名称 <目标知识库名>”重新发起迁移。
+    - id: target_kb_path_absent
+      type: builtin
+      parameters: {}
+      on_failed: 目标知识库目录已经存在，不能覆盖。
+    access:
+      read_scope:
+        allowed:
+        - root registry used to resolve source root aliases and paths
+        - source root wiki_registry.yaml
+        - source root wiki_registry.md
+        - source root resource_registry.yaml
+        - source root resource_registry.md
+        - source root blacklist_registry.yaml
+        - source root blacklist_registry.md
+        - current root wiki_registry.yaml
+        - current root wiki_registry.md
+        - current root resource_registry.yaml
+        - current root resource_registry.md
+        - current root blacklist_registry.yaml
+        - current root blacklist_registry.md
+        - source KB .virtualDatabase/machine/*.yaml
+        - source KB .virtualDatabase/human/*.md
+        - source KB .registry/machine/*.yaml
+        - source KB .registry/human/*.md
+        - source KB entities/*.md
+        - source KB relationships/machine/*.yaml
+        - source KB relationships/human/*.md
+        - source KB conversation_entities/*.md
+        - source KB engineering_entities/*.md
+        - source root Library/public_resources/<source_resource_id>/
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Library/public_resources/<target_resource_id>/
+        - Wiki/Wiki_<target_kb_name>/
+        - Wiki/Wiki_<target_kb_name>/.virtualDatabase/machine/*.yaml
+        - Wiki/Wiki_<target_kb_name>/.virtualDatabase/human/*.md
+        - Wiki/Wiki_<target_kb_name>/.registry/machine/*.yaml
+        - Wiki/Wiki_<target_kb_name>/.registry/human/*.md
+        - Wiki/Wiki_<target_kb_name>/entities/*.md
+        - Wiki/Wiki_<target_kb_name>/relationships/machine/*.yaml
+        - Wiki/Wiki_<target_kb_name>/relationships/human/*.md
+        - Wiki/Wiki_<target_kb_name>/conversation_entities/*.md
+        - Wiki/Wiki_<target_kb_name>/engineering_entities/*.md
+        - Wiki/Wiki_<target_kb_name>/.valhalla/imports/kb_migration_<timestamp>/
+        denied:
+        - any source root file or directory
+        - any source KB file or directory
+        - blacklist_registry.yaml
+        - blacklist_registry.md
+        - .valhalla/kb_status.md
+        - current root root-registry configuration
+        - unrelated current-root KB directories
+    output:
+      required:
+      - migrate_kb_inspect_report
+      - migration_plan
+      - resource_id_map
+      - reused_resources
+      - copied_public_resources
+      - blacklist_delta
+      - local_exclusions_added
+      - registration_plan
+      - migrate_kb_report
+      - registration_report
+      - registered_kb
+      - wiki_registry_updates
+      - post_registration_validation
+      - next_operation
+      - modified_files
+      - current_state
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/migrate_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - migrate_kb_inspect_report
+          - migration_plan
+          - resource_id_map
+          - blacklist_delta
+          - local_exclusions_added
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - migrate_kb_inspect_report
+          - migration_plan
+          - resource_id_map
+          - blacklist_delta
+          - local_exclusions_added
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - 用户明确确认
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/migrate_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - migrate_kb_report
+          - registration_report
+          - registered_kb
+          - wiki_registry_updates
+          - post_registration_validation
+          - next_operation
+          - modified_files
+          - current_state

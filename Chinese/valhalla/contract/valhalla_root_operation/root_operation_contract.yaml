@@ -1,0 +1,250 @@
+contract:
+  name: root_operation_contract
+  version: 0.5.11
+  purpose: |
+    根目录高级操作合同，也是根目录高级操作的入口。
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    create_root:
+      triggers:
+      - 创建root
+      - 创建Valhalla root
+      - 创建根目录
+    register_root:
+      triggers:
+      - 登记root
+      - 登记Valhalla root
+      - 登记根目录
+    switch_root:
+      triggers:
+      - 切换root
+      - 切换Valhalla root
+      - 更换root
+    remove_root:
+      triggers:
+      - 删除root
+      - 删除Valhalla root
+      - 删除根目录
+      - 移除root
+      - 移除Valhalla root
+      - 移除根目录
+    fuse_roots:
+      triggers:
+      - 融合root
+      - 融合Valhalla root
+      - 合并root
+      - 合并Valhalla root
+      - 整合root
+      - 整合Valhalla root
+      - 将来源
+      - 融合为
+      - 合并为
+      - 整合为
+operations:
+  create_root:
+    intent: 创建一个新的 Valhalla root，并登记到 root 注册表。
+    input:
+      required:
+      - root_path
+      optional:
+      - root_alias
+      pattern:
+        canonical: 创建valhalla root <root路径> [root别名]
+        examples:
+        - 创建valhalla root D:\Valhalla\test_root 测试库
+        - 创建valhalla root /home/user/valhalla-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 create_root：该操作只能在 admin 状态下运行。
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/create_root.md
+      load_after_validation: true
+    output:
+      required:
+      - create_root_report
+  register_root:
+    intent: 将一个新的 Valhalla root 登记到 root 注册表。
+    input:
+      required:
+      - root_path
+      optional:
+      - root_alias
+      pattern:
+        canonical: 登记valhalla root <root路径> [root别名]
+        examples:
+        - 登记valhalla root D:\Valhalla\test_root 测试库
+        - 登记valhalla root /home/user/valhalla-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 register_root：该操作只能在 admin 状态下运行。
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/register_root.md
+      load_after_validation: true
+    output:
+      required:
+      - register_root_report
+  switch_root:
+    intent: 切换当前的 Valhalla root。
+    input:
+      required:
+      - root_query
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 switch_root：该操作只能在 admin 状态下运行。
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/switch_root.md
+      load_after_validation: true
+    output:
+      required:
+      - switch_root_report
+  remove_root:
+    intent: 从 root 注册表中移除一个 Valhalla root。
+    input:
+      required:
+      - root_path
+      optional: []
+      pattern:
+        canonical: 删除valhalla root <root路径>
+        examples:
+        - 删除valhalla root D:\Valhalla\test_root
+        - 删除valhalla root /home/user/valhalla-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 remove_root：该操作只能在 admin 状态下运行。
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/remove_root.md
+      load_after_validation: true
+    output:
+      required:
+      - remove_root_report
+  fuse_roots:
+    intent: |
+      将多个来源 Valhalla root 只读审计后融合为一个新的派生 root。
+      该操作不是把一个来源 root 写进另一个来源 root，而是在目标路径创建新的 root。
+    input:
+      required:
+      - source_roots
+      - target_root_path
+      optional:
+      - target_root_alias
+      pattern:
+        canonical: 将来源 <来源root列表> <融合|合并|整合>为 <新root路径> [别名 <新root别名>]
+        compatible: <融合root|合并root|整合root> <新root路径> 来源 <来源root列表> [别名 <新root别名>]
+        examples:
+        - 将来源 root1, "E:\shared roots\Alice Root"，E:\roots\BobRoot 融合为 E:\valhallaroot\FusionRoot 别名 综合库
+        - 合并root E:\valhallaroot\FusionRoot 来源 root1，root2 别名 综合库
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: 拒绝执行 fuse_roots：该操作只能在 admin 状态下运行。
+    preconditions:
+    - id: source_roots_minimum_count
+      type: input_validation
+      parameters:
+        min_count: 2
+        source: source_roots
+      on_failed: 前置条件未满足：source_roots 至少需要 2 个来源 root。
+    - id: target_root_not_source_root
+      type: path_validation
+      parameters:
+        target: target_root_path
+        forbidden_sources: source_roots
+      on_failed: 前置条件未满足：target_root_path 不能与任一来源 root 相同。
+    access:
+      read_scope:
+        allowed:
+        - root registry used to resolve source root aliases
+        - each resolved source root resource_registry.yaml/md
+        - each resolved source root blacklist_registry.yaml/md
+        - each resolved source root wiki_registry.yaml/md
+        - each source KB local_resources.yaml/md
+        - each source KB required_resources.yaml/md
+        - each source KB excluded_resources.yaml/md
+        - each source public resource representation required for identity audit
+      write_scope:
+        allowed:
+        - target_root_path/.valhalla/
+        - target_root_path/resource_registry.yaml
+        - target_root_path/resource_registry.md
+        - target_root_path/blacklist_registry.yaml
+        - target_root_path/blacklist_registry.md
+        - target_root_path/wiki_registry.yaml
+        - target_root_path/wiki_registry.md
+        - target_root_path/Library/public_resources/
+        - target_root_path/Wiki/
+        - target_root_path/.valhalla/imports/root_fusion_<timestamp>/
+        - root registry entry for target root when target root registration is explicitly confirmed
+        forbidden:
+        - any source root file or directory
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/fuse_roots.md
+      load_after_validation: true
+    output:
+      required:
+      - fuse_roots_report
+      - root_registration_decision
+      - next_operation
+
+
+

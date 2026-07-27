@@ -1,0 +1,113 @@
+contract:
+  name: project_work
+  version: 0.5.11
+  purpose: |
+    使用指定知识库推进论文、代码、实验、综述、方案、报告或工程任务。 本操作面向具体项目产出，负责读取知识库内容、整合相关实体与资料、 制定工作计划、生成或修改项目产物，并输出可追溯的工作报告。
+operations:
+  project_work:
+    intent: 使用知识库推进论文、代码、实验、综述、方案、报告或工程任务。
+    input:
+      required:
+      - project_goal
+      optional:
+      - target_paths
+      - expected_outputs
+      - constraints
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 project_work：该操作需要base状态下运行。
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: 拒绝执行 project_work：该操作需要在启动某个知识库的情况下运行。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：target_kb_known
+    - id: project_goal_unambiguous
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：project_goal_unambiguous
+    access:
+      read_scope:
+        allowed:
+        - Wiki/Wiki_<知识库名>/Wiki.md
+        - Wiki/Wiki_<知识库名>/index.md
+        - Wiki/Wiki_<知识库名>/log.md
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/human/required_resources.md
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_<知识库名>/.virtualDatabase/human/excluded_resources.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/entity_resource_map.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/conversation_entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/conversation_entity_registry.md
+        - Wiki/Wiki_<知识库名>/.registry/machine/engineering_entity_registry.yaml
+        - Wiki/Wiki_<知识库名>/.registry/human/engineering_entity_registry.md
+        - Wiki/Wiki_<知识库名>/entities/
+        - Wiki/Wiki_<知识库名>/knowledge_graph/
+        - Wiki/Wiki_<知识库名>/conversation_entities/
+        - Wiki/Wiki_<知识库名>/engineering_entities/
+        - Library/public_resources/
+      write_scope:
+        allowed:
+        - user_explicit_target_paths
+        - files_required_to_complete_user_explicit_target_paths
+        denied:
+        - Wiki/Wiki_<知识库名>/
+        - resource_registry.yaml
+        - resource_registry.md
+        - blacklist_registry.yaml
+        - Library/public_resources/
+        no_target_path_policy: |
+          用户未指定目标路径时，默认只在回复中生成项目产物。 如需创建或修改文件，先列出拟写入的精确路径并获得用户确认。
+        knowledge_base_write_policy: |
+          project_work 对知识库底层结构只读，不得修改资料表、注册表、实体、 关系、知识图谱、对话实体或工程实体。需要沉淀项目结果时，只在报告中 建议后续调用 ingest_conversation 或 ingest_engineering。
+    executor:
+      type: workflow
+      paths:
+      - workflows/project_work/project_work.md
+      load_after_validation: true
+    output:
+      required:
+      - project_goal
+      - completion_status
+      - target_kb
+      - knowledge_used
+      - source_records
+      - created_files
+      - modified_files
+      - unresolved_questions
+      - suggested_knowledge_writeback
+    constraints:
+      resource_constraints:
+        effective_corpus: |
+          (.virtualDatabase/machine/local_resources.yaml 中 membership_status == active 的 resource_id ∪ .virtualDatabase/machine/required_resources.yaml 中 membership_status == active 的 resource_id) - .virtualDatabase/machine/excluded_resources.yaml 中 membership_status == active 的 resource_id
+        blacklist_policy: 不得引用、总结、改写或基于剔除资料表和黑名单中的资料推进项目。
+        projection_policy: Markdown 资料表仅供人类查看，不参与有效资料库计算。
+        required_policy: 若 required_resources 存在，必须优先检查并使用指定资料。
+        citation_policy: 凡引用知识库资料、实体内容或工程总结，必须在工作报告中记录来源。
+
+
+

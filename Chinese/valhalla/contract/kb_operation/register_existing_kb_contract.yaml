@@ -1,0 +1,134 @@
+contract:
+  name: register_existing_kb_contract
+  version: 0.5.11
+  purpose: |
+    将当前 Valhalla root 下已经存在但尚未登记的 Wiki/Wiki_<知识库名>/ 目录
+    登记到 wiki_registry.yaml，并同步 wiki_registry.md。该操作还会根据目标知识库的
+    entity_resource_map.yaml 与 entity_registry.yaml 验证 resource_id 是否存在。
+    usage.referenced_by 与 reference_count 必须在本 operation 的 fix 阶段同步重建。
+    该操作不创建知识库目录，不修改知识库内部文件，不启动知识库，不修复损坏结构。
+operations:
+  register_existing_kb:
+    input:
+      required:
+      - kb名称
+      optional: []
+      pattern:
+        canonical: 登记已有知识库 <kb名称>
+        examples:
+        - 登记已有知识库 ai工程x
+        - 注册已有知识库 测试库
+        - 将已有 Wiki 登记为知识库 ai工程x
+        - 登记已有kb 测试库
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: 拒绝执行 register_existing_kb：该操作只能在 base 状态下运行。
+      kb_status:
+        allowed:
+        - idle
+        on_denied: 拒绝执行 register_existing_kb：登记已有知识库前必须先退出当前知识库。
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: 前置条件未满足：current_root_known
+    - id: source_wiki_directory_exists
+      type: builtin
+      parameters: {}
+      on_failed: 目标 Wiki 目录不存在，不能登记已有知识库。
+    - id: target_kb_name_not_registered
+      type: builtin
+      parameters: {}
+      on_failed: 该知识库名称已在 wiki_registry.yaml 中登记。
+    - id: source_wiki_minimal_structure_valid
+      type: builtin
+      parameters: {}
+      on_failed: 目标 Wiki 目录缺少最低结构文件，不能登记。
+    - id: mapped_resource_ids_exist_in_resource_registry
+      type: builtin
+      parameters: {}
+      on_failed: 目标知识库的 entity_resource_map.yaml 引用了 resource_registry.yaml 中不存在的 resource_id。
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<知识库名>/
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        denied:
+        - Wiki/Wiki_<知识库名>/**
+        - Library/
+        - Library/public_resources/
+        - 其他知识库目录
+    output:
+      required:
+      - register_existing_kb_inspect_report
+      - register_existing_kb_report
+      - next_operation
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/register_existing_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - register_existing_kb_inspect_report
+          - resource_usage_sync_plan
+          - affected_resource_ids
+          - missing_resource_ids
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - register_existing_kb_inspect_report
+          - resource_usage_sync_plan
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - 用户明确确认
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/register_existing_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - register_existing_kb_report
+          - registered_kb
+          - resource_usage_sync_report
+          - next_operation
+          - modified_files
+          - current_state
