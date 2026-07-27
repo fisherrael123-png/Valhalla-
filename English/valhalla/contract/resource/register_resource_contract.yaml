@@ -1,0 +1,65 @@
+contract:
+  name: register_resource_contract
+  version: 0.5.11
+  purpose: |
+    Register source files in non-public Library directories under the current Valhalla root with stable resource_id values, and maintain the names, representations, source copies, and public copies of each unique information object.
+operations:
+  register_resource:
+    input:
+      required:
+      - resource_query
+      optional:
+      - canonical_name
+      - aliases
+      - information_identity
+      - representation_type
+      - note
+      pattern:
+        canonical: register resource <filename|Library-relative-path|directory>
+        examples:
+        - register resource attention.pdf
+        - register resource Library/papers/attention.pdf
+        - register resource Library/project-materials/paper-directory
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied register_resource: this operation may run only in base state."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: resource_query_within_current_root_library
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: resource_query_within_current_root_library"
+    access:
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - Library/public_resources/<resource_id>/
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/register_resource.md
+      load_after_validation: true
+    output:
+      required:
+      - resource_id
+      - canonical_name
+      - modified_files
+      - source_copies
+      - public_copies
+      - identity_conflicts
+
+
+

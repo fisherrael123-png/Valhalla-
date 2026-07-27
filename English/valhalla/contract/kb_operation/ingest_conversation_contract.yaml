@@ -1,0 +1,53 @@
+contract:
+  name: ingest_conversation_contract
+  version: 0.5.11
+  purpose: |
+    Extract knowledge from the current session and preserve it in a specialized Entity collection for long-term accumulation.
+operations:
+  ingest_conversation:
+    input:
+      required: []
+      optional: []
+      pattern:
+        canonical: ingest the current session
+        examples:
+        - ingest this session into the knowledge base
+        - archive this session to the knowledge base
+        - archive the conversation
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied ingest_conversation: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: "Denied ingest_conversation: this operation may run only in kb:<name> state."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest_conversation.md
+      load_after_validation: true
+    output:
+      required:
+      - ingest_conversation_report
+      - target_kb
+
+
+

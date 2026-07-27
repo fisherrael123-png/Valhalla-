@@ -1,0 +1,53 @@
+contract:
+  name: start_kb_contract
+  version: 0.5.11
+  purpose: |
+    Start a knowledge base or switch to another knowledge base under the current Valhalla root.
+operations:
+  start_kb:
+    input:
+      required:
+      - kb_name
+      optional: []
+      pattern:
+        canonical: start knowledge base <kb_name>
+        examples:
+        - start knowledge base test-kb
+        - start the knowledge base named test-kb
+        - start KB test-kb
+        - switch to knowledge base test-kb
+        - switch to KB test-kb
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied start_kb: this operation may run only in base state."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/start_kb.md
+      load_after_validation: true
+    output:
+      required:
+      - modified_files
+      - target_kb
+      - current_state
+
+
+

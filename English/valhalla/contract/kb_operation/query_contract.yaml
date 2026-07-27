@@ -1,0 +1,81 @@
+contract:
+  name: query_contract
+  version: 0.5.11
+  purpose: |
+    Answer questions using knowledge in the current knowledge base.
+operations:
+  query:
+    input:
+      required:
+      - query_text
+      optional:
+      - query_scope
+      - allow_network_search
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied query: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: "Denied query: this operation requires an active knowledge base."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    access:
+      read_scope:
+        allowed:
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/entities/
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/knowledge_graph/
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/conversation_entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/conversation_entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/conversation_entities/
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/engineering_entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/engineering_entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/engineering_entities/
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/excluded_resources.yaml
+        - resource_registry.yaml
+        - blacklist_registry.yaml
+        - Library/public_resources/
+      restrictions:
+        - Read only resource_id values in the effective resource collection
+        - Do not read resources in excluded_resources or blacklist_registry
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/query.md
+      load_after_validation: true
+    output:
+      required:
+      - answer
+      - target_kb
+      - knowledge_used
+      - source_records
+      - external_sources
+      - inferences
+      - conflicts
+      - uncertainty
+      - suggested_follow_up
+
+

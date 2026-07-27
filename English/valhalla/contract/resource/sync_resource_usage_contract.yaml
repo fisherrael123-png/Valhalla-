@@ -1,0 +1,132 @@
+contract:
+  name: sync_resource_usage_contract
+  version: 0.5.11
+  purpose: |
+    Treat the current root's wiki_registry.yaml as the authority for registered knowledge bases. Rebuild usage.referenced_by and reference_count in resource_registry.yaml from entity_registry.yaml and entity_resource_map.yaml in registered knowledge bases, and remove historical usage pointing to unregistered knowledge bases.
+operations:
+  sync_resource_usage:
+    input:
+      required: []
+      optional:
+      - target_kb_name
+      - target_root_path
+      - dry_run
+      pattern:
+        canonical: synchronize resource usage
+        examples:
+        - synchronize resource usage
+        - clean historical resource usage
+        - rebuild the resource-reference index
+        - synchronize resource usage ai-engineering
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        - admin
+        on_denied: "Denied sync_resource_usage: this operation may run only in base or admin state."
+      kb_status:
+        allowed:
+        - idle
+        - kb:<name>
+        on_denied: "Denied sync_resource_usage: this operation may run only in idle or kb:<name> state."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: wiki_registry_readable
+      type: builtin
+      parameters: {}
+      on_failed: The current root's wiki_registry.yaml cannot be read.
+    - id: resource_registry_readable
+      type: builtin
+      parameters: {}
+      on_failed: The current root's resource_registry.yaml cannot be read.
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - resource_registry.yaml
+        - resource_registry.md
+        - target_root_path/wiki_registry.yaml
+        - target_root_path/resource_registry.yaml
+        - target_root_path/resource_registry.md
+        - Wiki/Wiki_<registered-knowledge-base>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<registered-knowledge-base>/.registry/machine/entity_resource_map.yaml
+        - target_root_path/Wiki/Wiki_<registered-knowledge-base>/.registry/machine/entity_registry.yaml
+        - target_root_path/Wiki/Wiki_<registered-knowledge-base>/.registry/machine/entity_resource_map.yaml
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - target_root_path/resource_registry.yaml
+        - target_root_path/resource_registry.md
+        denied:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Wiki/
+        - Library/
+        - Library/public_resources/
+    output:
+      required:
+      - sync_resource_usage_inspect_report
+      - sync_resource_usage_report
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/resource_operation/sync_resource_usage.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - sync_resource_usage_inspect_report
+          - target_usage_index
+          - stale_usage_entries
+          - missing_usage_entries
+          - affected_resource_ids
+          - missing_resource_ids
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - sync_resource_usage_inspect_report
+          - target_usage_index
+          - stale_usage_entries
+          - missing_usage_entries
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - user_explicit_confirmation
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/resource_operation/sync_resource_usage.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - sync_resource_usage_report
+          - modified_files
+          - current_state

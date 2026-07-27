@@ -1,0 +1,86 @@
+contract:
+  name: ingest_contract
+  version: 0.5.11
+  purpose: |
+    Extract knowledge from the unique source information represented by one or more resource_id values and create entities in the current knowledge base.
+operations:
+  ingest:
+    input:
+      required:
+      - resource_query
+      optional: []
+      pattern:
+        canonical: ingest <resource_id|filename|Library-relative-path|Library-directory>
+        examples:
+        - ingest res_000001
+        - ingest attention.pdf
+        - ingest Library/papers/AIDD
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied ingest: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: "Denied ingest: this operation may run only in kb:<name> state."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    access:
+      read_scope:
+        allowed:
+        - resource_registry.yaml
+        - blacklist_registry.yaml
+        - Library/public_resources/
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<knowledge-base-name>/entities/
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<knowledge-base-name>/entities/
+        denied:
+        - Wiki/Wiki_<other-knowledge-base-name>/**
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest.md
+      load_after_validation: true
+    output:
+      required:
+      - completion_status
+      - resource_ids
+      - completed_resource_ids
+      - skipped_resource_queries
+      - registration_results
+      - failed_resources
+      - modified_files
+      - target_kb
+      - current_state
+      - next_operation
+
+
+

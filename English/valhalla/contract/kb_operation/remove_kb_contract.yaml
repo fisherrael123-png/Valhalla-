@@ -1,0 +1,127 @@
+contract:
+  name: remove_kb_contract
+  version: 0.5.11
+  purpose: |
+    Unregister a registered knowledge base under the current Valhalla root. This operation removes the registration from wiki_registry.yaml/wiki_registry.md and synchronously cleans usage in resource_registry.yaml/resource_registry.md during the fix phase. It does not delete the Wiki/Wiki_<knowledge-base-name>/ directory or any knowledge-base content file.
+operations:
+  remove_kb:
+    input:
+      required:
+      - kb_name
+      optional: []
+      pattern:
+        canonical: remove knowledge base <kb_name>
+        examples:
+        - delete knowledge base test-kb
+        - remove knowledge base test-kb
+        - unregister knowledge base test-kb
+        - remove knowledge base test-kb from the current root
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied remove_kb: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - idle
+        on_denied: "Denied remove_kb: this operation may run only in idle state; exit the current knowledge base first."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    - id: target_kb_registered
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_registered"
+    - id: target_wiki_path_within_current_root_wiki
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_wiki_path_within_current_root_wiki"
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        denied:
+        - Wiki/Wiki_<knowledge-base-name>/
+        - Library/
+        - Library/public_resources/
+    output:
+      required:
+      - remove_kb_inspect_report
+      - remove_kb_report
+      - resource_usage_cleanup_report
+      - next_operation
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/remove_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - remove_kb_inspect_report
+          - resource_usage_cleanup_plan
+          - affected_resource_ids
+          - orphan_candidate_resource_ids
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - remove_kb_inspect_report
+          - resource_usage_cleanup_plan
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - user_explicit_confirmation
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/remove_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - remove_kb_report
+          - removed_kb
+          - resource_usage_cleanup_report
+          - preserved_wiki_path
+          - next_operation
+          - modified_files
+          - current_state

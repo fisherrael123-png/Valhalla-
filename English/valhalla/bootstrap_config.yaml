@@ -1,0 +1,51 @@
+﻿bootstrap:
+  - run_self_test
+  - validate_contract_format
+  - validate_resource_contract
+  - validate_status_and_entity_paths
+  - validate_biosequence_ingest_policy
+  - load_router
+  - print_status
+
+operations:
+  run_self_test:
+    type: run_script
+    command:
+      - python
+      - scripts/system_self_test.py
+
+  validate_contract_format:
+    type: run_script
+    command:
+      - python
+      - scripts/validate_contract_format.py
+
+  validate_resource_contract:
+    type: run_script
+    command:
+      - python
+      - scripts/validate_resource_contract_v2.py
+
+  validate_status_and_entity_paths:
+    type: run_script
+    command:
+      - python
+      - scripts/validate_status_and_entity_paths.py
+
+  validate_biosequence_ingest_policy:
+    type: run_script
+    command:
+      - python
+      - scripts/validate_biosequence_ingest_policy.py
+
+  load_router:
+    type: load_file
+    path: router/router.md
+
+  print_status:
+    type: run_script
+    command:
+      - python
+      - scripts/status.py
+
+

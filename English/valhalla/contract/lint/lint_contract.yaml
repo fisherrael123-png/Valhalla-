@@ -1,0 +1,170 @@
+contract:
+  name: lint
+  version: 0.5.11
+  purpose: |
+    Inspect consistency across a Valhalla root or knowledge base, including structure, indexes, registries, resource tables, Entity files, Relationship files, Knowledge Graph files, Conversation Entities, and Engineering Entities. After explicit user confirmation, fix low-risk issues already listed in the inspection report.
+operations:
+  lint:
+    intent: |
+      Inspect the current knowledge base, a named knowledge base, every knowledge base, or perform a deep inspection. After inspection, ask whether the user wants to fix listed automatically repairable issues.
+    input:
+      required: []
+      optional:
+      - kb_name
+      - scope
+      - depth
+      - target_path
+      - fix_confirmed
+      - selected_issue_ids
+      - dry_run
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied lint: admin state is required."
+    preconditions: []
+    access: {}
+    output:
+      required:
+      - lint_report
+      - lint_fix_report
+      - next_operation
+    constraints:
+      write_constraints:
+        require_user_confirmation: true
+        write_allowed_only_after:
+        - The current lint inspection has completed.
+        - lint_report has been generated.
+        - The fix is explicitly listed in lint_report.
+        - 'The fix is marked fixable: true.'
+        - 'The fix is marked requires_confirmation: false.'
+        - The user explicitly confirmed execution of the fix.
+      scope_values:
+        current_kb: Inspect the current knowledge base.
+        named_kb: Inspect a named knowledge base.
+        all_kbs: Inspect every knowledge base.
+        root: Inspect the foundational Valhalla root structure.
+        file: Inspect a specified file.
+      depth_values:
+        normal: "Normal inspection: inspect structure, required files, path references, and schema parseability."
+        deep: "Deep inspection: additionally inspect cross-file consistency, orphan entities, unregistered references, duplicate entities, and the effective resource scope."
+      default:
+        scope: current_kb
+        depth: normal
+        dry_run: false
+        fix_confirmed: false
+      must_do:
+      - Perform the read-only inspection first.
+      - Output lint_report first.
+      - List automatically fixable issues.
+      - A deep inspection must report an Entity when entity_registry points to a content_file whose content file does not exist.
+      - Ask whether the user wants to fix issues before any write.
+      - Enter the fix phase only after explicit user confirmation.
+      must_not:
+      - Do not modify, create, delete, or move any file during inspection.
+      - Do not skip lint_report and fix directly.
+      - Do not fix an issue absent from lint_report.
+      - Do not rewrite knowledge content.
+      - Do not merge entities.
+      - Do not split entities.
+      - Do not delete sources, entities, Relationships, or graph nodes unless the user separately and explicitly authorizes it after the report.
+      - Do not guess missing content.
+      - Do not treat an uncertain issue as automatically fixable.
+      - Do not automatically rewrite or regenerate missing Entity context.
+      require_separate_confirmation_when:
+      - A file must be deleted.
+      - A file must be moved.
+      - Entity content must be rewritten.
+      - An Entity must be merged or split.
+      - The effective resource scope of a resource table must change.
+      - Multiple knowledge bases would be affected.
+      - A non-usage field in resource_registry.yaml must be modified directly.
+      - The exclusion table must be modified.
+      resource_table_cleanup:
+        authority: Three YAML resource tables
+        human_projection: Three same-named Markdown resource tables
+        active_rule: Only entries with membership_status == active participate in the effective resource collection.
+        pending_removal_rule: |
+          A removal marks only pending_removal. Lint physically removes entries from YAML and deletes pending-cleanup rows from Markdown in a batch only after lint_report lists them and the user confirms.
+        refresh_fields:
+        - canonical_name
+        - current_source_paths
+        - resource_type_and_version
+        - membership_status
+        - added_via
+        - added_at
+        - removed_at
+        - note
+      missing_entity_content_cleanup:
+        issue_type: missing_entity_content_file
+        inspect_rule: |
+          When depth=deep, inspect .registry/machine/entity_registry.yaml in the current or named knowledge base. If an Entity's content_file is a valid entities/-relative path but the target content file does not exist, list a missing_entity_content_file issue in lint_report.
+        fix_rule: |
+          Clean registration data only after the user confirms fixing a missing_entity_content_file issue in the current lint_report. The fix may only delete the Entity entry corresponding to the missing content from entity_registry.yaml, remove mappings for that entity_id from entity_resource_map.yaml, and rebuild both human Markdown projections. Then rebuild usage in resource_registry.yaml/md within the same fix; do not output a follow-up usage-synchronization operation.
+        modified_files:
+        - .registry/machine/entity_registry.yaml
+        - .registry/human/entity_registry.md
+        - .registry/machine/entity_resource_map.yaml
+        - .registry/human/entity_resource_map.md
+        - resource_registry.yaml
+        - resource_registry.md
+        must_not_modify:
+        - Library/
+        - Library/public_resources/
+        - entities/
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/lint/lint.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - lint_report
+          - fixable_issue_ids
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - lint_report
+          - fixable_issue_ids
+        input:
+          required:
+          - selected_issue_ids
+          optional: []
+        constraints:
+        - selected_issues_must_exist_in_lint_report
+        - selected_issues_must_be_fixable
+        - selected_issues_must_not_require_separate_confirmation
+        executor:
+          type: workflow
+          paths:
+          - workflows/lint/lint.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - lint_fix_report
+          - next_operation
+          - modified_files
+
+
+

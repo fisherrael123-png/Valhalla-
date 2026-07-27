@@ -1,0 +1,70 @@
+contract:
+  name: relate_entities_contract
+  version: 0.5.11
+  purpose: |
+    Relate entities in the knowledge base and write Relationship-fact files by predicate/type.
+operations:
+  relate_entities:
+    input:
+      required: []
+      optional:
+      - entity_scope
+      - relationship_focus
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied relate_entities: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: "Denied relate_entities: this operation requires an active knowledge base."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    access:
+      read_scope:
+        allowed:
+        - resource_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/relationships/machine/*.yaml
+        - Wiki/Wiki_<knowledge-base-name>/relationships/human/*.md
+        - Wiki/Wiki_<knowledge-base-name>/entities/
+        - Library/public_resources/
+      write_scope:
+        allowed:
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/relationships/machine/*.yaml
+        - Wiki/Wiki_<knowledge-base-name>/relationships/human/*.md
+        denied:
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/knowledge_graph/
+        - Wiki/Wiki_<knowledge-base-name>/entities/
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/relate_entities.md
+      load_after_validation: true
+    output:
+      required:
+      - relate_entities_report

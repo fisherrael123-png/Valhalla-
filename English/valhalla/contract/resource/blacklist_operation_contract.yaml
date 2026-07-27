@@ -1,0 +1,126 @@
+contract:
+  name: blacklist_operation
+  version: 0.5.11
+  status: active
+  purpose: |
+    Resolve a stable resource_id from a human-supplied filename or Library-relative path, then list, add, or remove the entire resource in the global blacklist.
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    list_blacklist:
+      triggers:
+      - show blacklist
+      - list blacklisted resources
+    add_blacklist:
+      triggers:
+      - add a resource to the blacklist
+      - blacklist a source file
+    remove_blacklist:
+      triggers:
+      - remove a resource from the blacklist
+      - stop blacklisting a resource
+operations:
+  list_blacklist:
+    intent: List globally blacklisted resources.
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/blacklist_operation.md
+      load_after_validation: true
+    output:
+      required:
+      - blacklist_list_report
+  add_blacklist:
+    intent: Resolve human input and blacklist the entire resource_id.
+    input:
+      required:
+      - resource_query
+      - reason
+      optional:
+      - evidence
+      - note
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied add_blacklist: adding a resource to the blacklist requires admin state."
+    preconditions: []
+    access:
+      write_scope:
+        allowed:
+        - blacklist_registry.yaml
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_*/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_*/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_*/.virtualDatabase/human/required_resources.md
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/register_resource.md
+      - workflows/resource_operation/blacklist_operation.md
+      load_after_validation: true
+    output:
+      required:
+      - blacklist_add_report
+  remove_blacklist:
+    intent: Remove the global-blacklist state from a resource_id.
+    input:
+      required:
+      - blacklist_id
+      optional:
+      - reason
+      - evidence
+      - note
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied remove_blacklist: removing a resource from the blacklist requires admin state."
+    preconditions: []
+    access:
+      write_scope:
+        allowed:
+        - blacklist_registry.yaml
+        - resource_registry.yaml
+        - resource_registry.md
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/resource_operation/blacklist_operation.md
+      load_after_validation: true
+    output:
+      required:
+      - blacklist_remove_report
+
+
+

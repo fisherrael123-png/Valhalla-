@@ -1,0 +1,39 @@
+contract:
+  name: list_root_contract
+  version: 0.5.11
+  purpose: |
+    List every knowledge base registered under the current Valhalla root.
+operations:
+  list_root:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Wiki/
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/list_root.md
+      load_after_validation: true
+    output:
+      required:
+      - list_root_report
+      - current_root
+      - wiki_count
+      - wiki_entries

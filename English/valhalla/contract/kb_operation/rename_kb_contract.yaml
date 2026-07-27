@@ -1,0 +1,121 @@
+contract:
+  name: rename_kb_contract
+  version: 0.5.11
+  purpose: |
+    Rename a registered knowledge base under the current Valhalla root and synchronize the knowledge-base directory, root knowledge-base registry, and internal name markers. This operation does not delete source material or modify the resource registry or Library.
+operations:
+  rename_kb:
+    input:
+      required:
+      - old_kb_name
+      - new_kb_name
+      optional: []
+      pattern:
+        canonical: rename knowledge base <old_kb_name> to <new_kb_name>
+        examples:
+        - rename knowledge base test-kb-m to RAG-paper-kb
+        - change knowledge-base name from test-kb-m to RAG-paper-kb
+        - "rename knowledge base: test-kb-m -> RAG-paper-kb"
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied rename_kb: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - idle
+        on_denied: "Denied rename_kb: exit the current knowledge base before renaming it."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: source_kb_registered
+      type: builtin
+      parameters: {}
+      on_failed: The old knowledge-base name is not registered under the current root.
+    - id: target_kb_name_available
+      type: builtin
+      parameters: {}
+      on_failed: The new knowledge-base name or target directory already exists.
+    - id: source_wiki_path_within_current_root_wiki
+      type: builtin
+      parameters: {}
+      on_failed: The old knowledge-base directory is not under the current root's Wiki/ directory and cannot be renamed automatically.
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Wiki/Wiki_<old-knowledge-base-name>/
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<old-knowledge-base-name>/
+        - Wiki/Wiki_<new-knowledge-base-name>/
+        denied:
+        - Library/
+        - Library/public_resources/
+        - other_knowledge_base_directories
+    output:
+      required:
+      - rename_kb_inspect_report
+      - rename_kb_report
+      - next_operation
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/rename_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - rename_kb_inspect_report
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - rename_kb_inspect_report
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - user_explicit_confirmation
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/rename_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - rename_kb_report
+          - renamed_kb
+          - moved_paths
+          - next_operation
+          - modified_files
+          - current_state

@@ -1,0 +1,28 @@
+contract:
+  name: status_contract
+  version: 0.5.11
+  purpose: |
+    Query both Valhalla system state and the knowledge-base session state under the current root.
+operations:
+  status:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: command
+      command:
+      - python
+      - scripts/status.py
+    output:
+      required:
+      - os_status
+      - kb_status

@@ -1,0 +1,130 @@
+contract:
+  name: register_existing_kb_contract
+  version: 0.5.11
+  purpose: |
+    Register an existing but unregistered Wiki/Wiki_<knowledge-base-name>/ directory under the current Valhalla root in wiki_registry.yaml and synchronize wiki_registry.md. Validate resource_id existence from the target knowledge base's entity_resource_map.yaml and entity_registry.yaml. Rebuild usage.referenced_by and reference_count synchronously during this operation's fix phase. This operation does not create the knowledge-base directory, modify internal files, start the knowledge base, or repair damaged structure.
+operations:
+  register_existing_kb:
+    input:
+      required:
+      - kb_name
+      optional: []
+      pattern:
+        canonical: register existing knowledge base <kb_name>
+        examples:
+        - register existing knowledge base ai-engineering-x
+        - register existing knowledge base test-kb
+        - register existing Wiki ai-engineering-x as a knowledge base
+        - register existing KB test-kb
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied register_existing_kb: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - idle
+        on_denied: "Denied register_existing_kb: exit the current knowledge base before registering an existing knowledge base."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: source_wiki_directory_exists
+      type: builtin
+      parameters: {}
+      on_failed: The target Wiki directory does not exist, so the knowledge base cannot be registered.
+    - id: target_kb_name_not_registered
+      type: builtin
+      parameters: {}
+      on_failed: This knowledge-base name is already registered in wiki_registry.yaml.
+    - id: source_wiki_minimal_structure_valid
+      type: builtin
+      parameters: {}
+      on_failed: The target Wiki directory lacks the minimum required structure and cannot be registered.
+    - id: mapped_resource_ids_exist_in_resource_registry
+      type: builtin
+      parameters: {}
+      on_failed: The target knowledge base's entity_resource_map.yaml references a resource_id absent from resource_registry.yaml.
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        denied:
+        - Wiki/Wiki_<knowledge-base-name>/**
+        - Library/
+        - Library/public_resources/
+        - other_knowledge_base_directories
+    output:
+      required:
+      - register_existing_kb_inspect_report
+      - register_existing_kb_report
+      - next_operation
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/register_existing_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - register_existing_kb_inspect_report
+          - resource_usage_sync_plan
+          - affected_resource_ids
+          - missing_resource_ids
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - register_existing_kb_inspect_report
+          - resource_usage_sync_plan
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - user_explicit_confirmation
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/register_existing_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - register_existing_kb_report
+          - registered_kb
+          - resource_usage_sync_report
+          - next_operation
+          - modified_files
+          - current_state

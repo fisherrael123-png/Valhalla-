@@ -1,0 +1,30 @@
+contract:
+  name: list_roots_contract
+  version: 0.5.11
+  purpose: |
+    List the currently available Valhalla roots.
+operations:
+  list_roots:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/list_roots.md
+      load_after_validation: true
+    output:
+      required:
+      - list_roots_report
+
+
+

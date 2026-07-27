@@ -1,0 +1,109 @@
+contract:
+  name: ingest_engineering_entity
+  version: 0.5.11
+  purpose: |
+    Manage Engineering Entities in the current knowledge base. Engineering Entities record implementation knowledge such as design decisions, implementation notes, and engineering files.
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    ingest_engineering:
+      triggers:
+      - ingest engineering experience
+      - archive engineering experience
+      - record an Engineering Entity
+    init_engineering_entities:
+      triggers:
+      - initialize Engineering Entities
+      - initialize engineering entity
+operations:
+  ingest_engineering:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: |
+          Denied ingest_engineering: this operation may run only in admin state.
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: |
+          Denied ingest_engineering: this operation may run only in kb:<name> state.
+    preconditions:
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<knowledge-base-name>/
+      on_failed: "Required path does not exist: Wiki/Wiki_<knowledge-base-name>/"
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<knowledge-base-name>/.registry/machine/engineering_entity_registry.yaml
+      on_failed: "Required path does not exist: Wiki/Wiki_<knowledge-base-name>/.registry/machine/engineering_entity_registry.yaml"
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<knowledge-base-name>/engineering_entities/
+      on_failed: "Required path does not exist: Wiki/Wiki_<knowledge-base-name>/engineering_entities/"
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest_engineering_entity.md
+      load_after_validation: true
+    output:
+      required:
+      - ingest_engineering_entity_report
+      - target_kb
+  init_engineering_entities:
+    intent: |
+      Initialize the Engineering Entity structure for the current knowledge base by creating engineering_entity_registry.yaml and the engineering_entities/ directory.
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: |
+          Denied init_engineering_entities: this operation may run only in base state.
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: |
+          Denied init_engineering_entities: this operation requires an active knowledge base.
+    preconditions:
+    - id: required_path_exists
+      type: path_exists
+      parameters:
+        path: Wiki/Wiki_<knowledge-base-name>/
+      on_failed: "Required path does not exist: Wiki/Wiki_<knowledge-base-name>/"
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/ingest_engineering_entity.md
+      load_after_validation: true
+    output:
+      required:
+      - init_engineering_entity_report
+      - target_kb
+
+
+

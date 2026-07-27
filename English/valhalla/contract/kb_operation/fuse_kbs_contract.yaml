@@ -1,0 +1,177 @@
+contract:
+  name: fuse_kbs_contract
+  version: 0.5.11
+  purpose: |
+    Within the current Valhalla root, perform a read-only review of multiple registered knowledge bases explicitly specified by the user and fuse them into a new target knowledge base. This operation does not fuse roots, automatically select every knowledge base under the current root, or modify source knowledge bases, resource_registry, or Library.
+operations:
+  fuse_kbs:
+    input:
+      required:
+      - source_kb_list
+      - target_kb_name
+      optional: []
+      pattern:
+        canonical: fuse knowledge bases <source-kb-A>, <source-kb-B>, <source-kb-C> into <new-knowledge-base>
+        examples:
+        - fuse knowledge bases RAG-paper-kb, Agent-engineering-kb into Combined-kb
+        - merge knowledge bases test-kb-A, test-kb-B, test-kb-C into New-combined-kb
+        unsupported:
+        - fuse every knowledge base in the current root into New-combined-kb
+        - fuse all knowledge bases
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied fuse_kbs: this operation may run only in admin state."
+      kb_status:
+        allowed:
+        - idle
+        on_denied: "Denied fuse_kbs: exit the current knowledge base before fusing knowledge bases."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: source_kbs_minimum_count
+      type: input_validation
+      parameters:
+        min_count: 2
+        source: source_kb_list
+      on_failed: "Precondition not met: at least two source knowledge bases are required."
+    - id: source_kbs_registered_in_current_root
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: every source knowledge base must be registered in the current root's wiki_registry.yaml."
+    - id: source_wiki_paths_within_current_root_wiki
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: every source knowledge-base directory must be under the current root's Wiki/ directory."
+    - id: target_kb_name_available
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: the target knowledge-base name or target directory already exists."
+    access:
+      read_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<source-knowledge-base-name>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_<source-knowledge-base-name>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.virtualDatabase/human/required_resources.md
+        - Wiki/Wiki_<source-knowledge-base-name>/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.virtualDatabase/human/excluded_resources.md
+        - Wiki/Wiki_<source-knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.registry/machine/conversation_entity_registry.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/.registry/machine/engineering_entity_registry.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/entities/*.md
+        - Wiki/Wiki_<source-knowledge-base-name>/relationships/machine/*.yaml
+        - Wiki/Wiki_<source-knowledge-base-name>/relationships/human/*.md
+        - Wiki/Wiki_<source-knowledge-base-name>/conversation_entities/*.md
+        - Wiki/Wiki_<source-knowledge-base-name>/engineering_entities/*.md
+      write_scope:
+        allowed:
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - resource_registry.yaml
+        - resource_registry.md
+        - Wiki/Wiki_<target-knowledge-base-name>/
+        - Wiki/Wiki_<target-knowledge-base-name>/.virtualDatabase/machine/*.yaml
+        - Wiki/Wiki_<target-knowledge-base-name>/.virtualDatabase/human/*.md
+        - Wiki/Wiki_<target-knowledge-base-name>/.registry/machine/*.yaml
+        - Wiki/Wiki_<target-knowledge-base-name>/.registry/human/*.md
+        - Wiki/Wiki_<target-knowledge-base-name>/entities/*.md
+        - Wiki/Wiki_<target-knowledge-base-name>/relationships/machine/*.yaml
+        - Wiki/Wiki_<target-knowledge-base-name>/relationships/human/*.md
+        - Wiki/Wiki_<target-knowledge-base-name>/conversation_entities/*.md
+        - Wiki/Wiki_<target-knowledge-base-name>/engineering_entities/*.md
+        - Wiki/Wiki_<target-knowledge-base-name>/.valhalla/imports/kb_fusion_<timestamp>/
+        denied:
+        - Wiki/Wiki_<source-knowledge-base-name>/
+        - Library/
+        - Library/public_resources/
+        - knowledge_graph/
+        - root fusion audit directories
+    output:
+      required:
+      - fuse_kbs_inspect_report
+      - fuse_kbs_plan
+      - entity_merge_decisions
+      - conversation_merge_decisions
+      - engineering_merge_decisions
+      - relationship_fusion_plan
+      - excluded_but_used_resources
+      - fuse_kbs_report
+      - target_kb
+      - next_operation
+      - modified_files
+      - current_state
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/fuse_kbs.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - fuse_kbs_inspect_report
+          - fuse_kbs_plan
+          - entity_merge_decisions
+          - conversation_merge_decisions
+          - engineering_merge_decisions
+          - relationship_fusion_plan
+          - excluded_but_used_resources
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - fuse_kbs_inspect_report
+          - fuse_kbs_plan
+          - entity_merge_decisions
+          - conversation_merge_decisions
+          - engineering_merge_decisions
+          - relationship_fusion_plan
+          - excluded_but_used_resources
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - user_explicit_confirmation
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/fuse_kbs.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - fuse_kbs_report
+          - target_kb
+          - next_operation
+          - modified_files
+          - current_state

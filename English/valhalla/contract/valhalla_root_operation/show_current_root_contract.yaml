@@ -1,0 +1,30 @@
+contract:
+  name: show_current_root_contract
+  version: 0.5.11
+  purpose: |
+    Show the root currently used by Valhalla.
+operations:
+  show_current_root:
+    input:
+      required: []
+      optional: []
+    permissions:
+      read: true
+      write: false
+    risk:
+      level: low
+      confirmation_required: false
+    state_constraints: {}
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/show_current_root.md
+      load_after_validation: true
+    output:
+      required:
+      - current_root_report
+
+
+

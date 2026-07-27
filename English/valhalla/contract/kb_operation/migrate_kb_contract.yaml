@@ -1,0 +1,196 @@
+contract:
+  name: migrate_kb_contract
+  version: 0.5.11
+  purpose: |
+    Perform a read-only review of one registered knowledge base in a registered, non-current Valhalla root and migrate it into the current root. Migration rewrites source-root resource_id values to current-root resource_id values, copies public material when necessary, and completes final registration in the current root's wiki_registry.yaml/md. The source root and source knowledge base remain read-only throughout.
+operations:
+  migrate_kb:
+    input:
+      required:
+      - source_kb_locator
+      optional:
+      - new_target_kb_name
+      pattern:
+        canonical: migrate knowledge base <root_alias>:<knowledge-base-name> [new name <target-knowledge-base-name>]
+        path_form: migrate knowledge base <registered-source-kb-absolute-path> [new name <target-knowledge-base-name>]
+        examples:
+        - migrate knowledge base root2:ai-engineering
+        - migrate knowledge base root2:ai-engineering new name ai-engineering-migrated
+        - migrate knowledge base E:\valhallaroot2\Wiki\Wiki_ai-engineering
+        - migrate knowledge base E:\valhallaroot2\Wiki\Wiki_ai-engineering new name ai-engineering-migrated
+    permissions:
+      read: true
+      write: conditional
+    risk:
+      level: high
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied migrate_kb: this operation may run only in admin state."
+      kb_status:
+        allowed:
+        - idle
+        on_denied: "Denied migrate_kb: exit the current knowledge base before migration."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: source_root_registered
+      type: builtin
+      parameters: {}
+      on_failed: The source root must be registered.
+    - id: source_root_not_current_root
+      type: builtin
+      parameters: {}
+      on_failed: The source root must not be the current root; use another knowledge-base service for operations within one root.
+    - id: source_kb_registered_in_source_root
+      type: builtin
+      parameters: {}
+      on_failed: The source knowledge base must be registered in the source root's wiki_registry.yaml.
+    - id: source_kb_path_registered_when_path_input
+      type: builtin
+      parameters: {}
+      on_failed: A path input must exactly match a wiki_registry.yaml entry in a registered, non-current root.
+    - id: source_kb_minimal_structure_exists
+      type: builtin
+      parameters: {}
+      on_failed: The source knowledge base lacks the minimum required structure and cannot be migrated.
+    - id: target_kb_name_available
+      type: builtin
+      parameters: {}
+      on_failed: The target knowledge-base name is already registered under the current root; restart migration with `new name <target-knowledge-base-name>`.
+    - id: target_kb_path_absent
+      type: builtin
+      parameters: {}
+      on_failed: The target knowledge-base directory already exists and cannot be overwritten.
+    access:
+      read_scope:
+        allowed:
+        - root registry used to resolve source root aliases and paths
+        - source root wiki_registry.yaml
+        - source root wiki_registry.md
+        - source root resource_registry.yaml
+        - source root resource_registry.md
+        - source root blacklist_registry.yaml
+        - source root blacklist_registry.md
+        - current root wiki_registry.yaml
+        - current root wiki_registry.md
+        - current root resource_registry.yaml
+        - current root resource_registry.md
+        - current root blacklist_registry.yaml
+        - current root blacklist_registry.md
+        - source KB .virtualDatabase/machine/*.yaml
+        - source KB .virtualDatabase/human/*.md
+        - source KB .registry/machine/*.yaml
+        - source KB .registry/human/*.md
+        - source KB entities/*.md
+        - source KB relationships/machine/*.yaml
+        - source KB relationships/human/*.md
+        - source KB conversation_entities/*.md
+        - source KB engineering_entities/*.md
+        - source root Library/public_resources/<source_resource_id>/
+      write_scope:
+        allowed:
+        - resource_registry.yaml
+        - resource_registry.md
+        - wiki_registry.yaml
+        - wiki_registry.md
+        - Library/public_resources/<target_resource_id>/
+        - Wiki/Wiki_<target_kb_name>/
+        - Wiki/Wiki_<target_kb_name>/.virtualDatabase/machine/*.yaml
+        - Wiki/Wiki_<target_kb_name>/.virtualDatabase/human/*.md
+        - Wiki/Wiki_<target_kb_name>/.registry/machine/*.yaml
+        - Wiki/Wiki_<target_kb_name>/.registry/human/*.md
+        - Wiki/Wiki_<target_kb_name>/entities/*.md
+        - Wiki/Wiki_<target_kb_name>/relationships/machine/*.yaml
+        - Wiki/Wiki_<target_kb_name>/relationships/human/*.md
+        - Wiki/Wiki_<target_kb_name>/conversation_entities/*.md
+        - Wiki/Wiki_<target_kb_name>/engineering_entities/*.md
+        - Wiki/Wiki_<target_kb_name>/.valhalla/imports/kb_migration_<timestamp>/
+        denied:
+        - any source root file or directory
+        - any source KB file or directory
+        - blacklist_registry.yaml
+        - blacklist_registry.md
+        - .valhalla/kb_status.md
+        - current root root-registry configuration
+        - unrelated current-root KB directories
+    output:
+      required:
+      - migrate_kb_inspect_report
+      - migration_plan
+      - resource_id_map
+      - reused_resources
+      - copied_public_resources
+      - blacklist_delta
+      - local_exclusions_added
+      - registration_plan
+      - migrate_kb_report
+      - registration_report
+      - registered_kb
+      - wiki_registry_updates
+      - post_registration_validation
+      - next_operation
+      - modified_files
+      - current_state
+    phases:
+      inspect:
+        order: 1
+        permissions:
+          read: true
+          write: false
+        confirmation_required: false
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/migrate_kb.md
+          section: inspect
+          load_after_validation: true
+        output:
+          required:
+          - migrate_kb_inspect_report
+          - migration_plan
+          - resource_id_map
+          - blacklist_delta
+          - local_exclusions_added
+          - affected_paths
+          - confirmation_prompt
+      fix:
+        order: 2
+        permissions:
+          read: true
+          write: true
+        confirmation_required: true
+        depends_on:
+          phase: inspect
+          required_outputs:
+          - migrate_kb_inspect_report
+          - migration_plan
+          - resource_id_map
+          - blacklist_delta
+          - local_exclusions_added
+          - affected_paths
+          - confirmation_prompt
+        input:
+          required:
+          - user_explicit_confirmation
+          optional: []
+        executor:
+          type: workflow
+          paths:
+          - workflows/kb/migrate_kb.md
+          section: fix
+          load_after_validation: true
+        output:
+          required:
+          - migrate_kb_report
+          - registration_report
+          - registered_kb
+          - wiki_registry_updates
+          - post_registration_validation
+          - next_operation
+          - modified_files
+          - current_state

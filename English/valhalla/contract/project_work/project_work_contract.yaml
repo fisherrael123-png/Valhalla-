@@ -1,0 +1,113 @@
+contract:
+  name: project_work
+  version: 0.5.11
+  purpose: |
+    Use the specified knowledge base to advance a paper, codebase, experiment, review, plan, report, or engineering task. This operation produces concrete project output by reading knowledge-base content, integrating relevant entities and sources, developing a work plan, creating or modifying project deliverables, and producing a traceable work report.
+operations:
+  project_work:
+    intent: Use a knowledge base to advance a paper, codebase, experiment, review, plan, report, or engineering task.
+    input:
+      required:
+      - project_goal
+      optional:
+      - target_paths
+      - expected_outputs
+      - constraints
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied project_work: this operation requires base state."
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: "Denied project_work: this operation requires an active knowledge base."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    - id: project_goal_unambiguous
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: project_goal_unambiguous"
+    access:
+      read_scope:
+        allowed:
+        - Wiki/Wiki_<knowledge-base-name>/Wiki.md
+        - Wiki/Wiki_<knowledge-base-name>/index.md
+        - Wiki/Wiki_<knowledge-base-name>/log.md
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/local_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/human/local_resources.md
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/required_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/human/required_resources.md
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/machine/excluded_resources.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.virtualDatabase/human/excluded_resources.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/entity_resource_map.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/entity_resource_map.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/relationship_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/relationship_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/knowledge_graph_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/knowledge_graph_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/conversation_entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/conversation_entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/.registry/machine/engineering_entity_registry.yaml
+        - Wiki/Wiki_<knowledge-base-name>/.registry/human/engineering_entity_registry.md
+        - Wiki/Wiki_<knowledge-base-name>/entities/
+        - Wiki/Wiki_<knowledge-base-name>/knowledge_graph/
+        - Wiki/Wiki_<knowledge-base-name>/conversation_entities/
+        - Wiki/Wiki_<knowledge-base-name>/engineering_entities/
+        - Library/public_resources/
+      write_scope:
+        allowed:
+        - user_explicit_target_paths
+        - files_required_to_complete_user_explicit_target_paths
+        denied:
+        - Wiki/Wiki_<knowledge-base-name>/
+        - resource_registry.yaml
+        - resource_registry.md
+        - blacklist_registry.yaml
+        - Library/public_resources/
+        no_target_path_policy: |
+          If the user does not specify a target path, produce the project deliverable only in the response. Before creating or modifying a file, list the exact proposed paths and obtain user confirmation.
+        knowledge_base_write_policy: |
+          project_work has read-only access to the knowledge base's underlying structure. It must not modify resource tables, registries, entities, Relationships, Knowledge Graphs, Conversation Entities, or Engineering Entities. If project results should be preserved, recommend a later ingest_conversation or ingest_engineering operation only in the report.
+    executor:
+      type: workflow
+      paths:
+      - workflows/project_work/project_work.md
+      load_after_validation: true
+    output:
+      required:
+      - project_goal
+      - completion_status
+      - target_kb
+      - knowledge_used
+      - source_records
+      - created_files
+      - modified_files
+      - unresolved_questions
+      - suggested_knowledge_writeback
+    constraints:
+      resource_constraints:
+        effective_corpus: |
+          (resource_id values with membership_status == active in .virtualDatabase/machine/local_resources.yaml ∪ resource_id values with membership_status == active in .virtualDatabase/machine/required_resources.yaml) - resource_id values with membership_status == active in .virtualDatabase/machine/excluded_resources.yaml
+        blacklist_policy: Do not cite, summarize, rewrite, or advance a project from material in the exclusion table or blacklist.
+        projection_policy: Markdown resource tables are for human inspection only and do not participate in the effective resource calculation.
+        required_policy: If required_resources exist, inspect and use the specified resources first.
+        citation_policy: Record provenance in the work report whenever knowledge-base material, Entity content, or an engineering summary is used.
+
+
+

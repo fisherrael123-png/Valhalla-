@@ -1,0 +1,249 @@
+contract:
+  name: root_operation_contract
+  version: 0.5.11
+  purpose: |
+    Contract and entry point for advanced root operations.
+dispatch:
+  required: true
+  fallback: clarify
+  on_ambiguous: clarify
+  operations:
+    create_root:
+      triggers:
+      - create root
+      - create Valhalla root
+      - create root directory
+    register_root:
+      triggers:
+      - register root
+      - register Valhalla root
+      - register root directory
+    switch_root:
+      triggers:
+      - switch root
+      - switch Valhalla root
+      - change root
+    remove_root:
+      triggers:
+      - delete root
+      - delete Valhalla root
+      - delete root directory
+      - remove root
+      - remove Valhalla root
+      - remove root directory
+    fuse_roots:
+      triggers:
+      - fuse roots
+      - fuse Valhalla roots
+      - merge roots
+      - merge Valhalla roots
+      - consolidate roots
+      - consolidate Valhalla roots
+      - from sources
+      - fuse into
+      - merge into
+      - consolidate into
+operations:
+  create_root:
+    intent: Create a new Valhalla root and register it in the root registry.
+    input:
+      required:
+      - root_path
+      optional:
+      - root_alias
+      pattern:
+        canonical: create Valhalla root <root-path> [root-alias]
+        examples:
+        - create Valhalla root D:\Valhalla\test_root test-root
+        - create Valhalla root /home/user/valhalla-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied create_root: this operation may run only in admin state."
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/create_root.md
+      load_after_validation: true
+    output:
+      required:
+      - create_root_report
+  register_root:
+    intent: Register a new Valhalla root in the root registry.
+    input:
+      required:
+      - root_path
+      optional:
+      - root_alias
+      pattern:
+        canonical: register Valhalla root <root-path> [root-alias]
+        examples:
+        - register Valhalla root D:\Valhalla\test_root test-root
+        - register Valhalla root /home/user/valhalla-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied register_root: this operation may run only in admin state."
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/register_root.md
+      load_after_validation: true
+    output:
+      required:
+      - register_root_report
+  switch_root:
+    intent: Switch the current Valhalla root.
+    input:
+      required:
+      - root_query
+      optional: []
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied switch_root: this operation may run only in admin state."
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/switch_root.md
+      load_after_validation: true
+    output:
+      required:
+      - switch_root_report
+  remove_root:
+    intent: Remove a Valhalla root from the root registry.
+    input:
+      required:
+      - root_path
+      optional: []
+      pattern:
+        canonical: remove Valhalla root <root-path>
+        examples:
+        - remove Valhalla root D:\Valhalla\test_root
+        - remove Valhalla root /home/user/valhalla-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied remove_root: this operation may run only in admin state."
+    preconditions: []
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/remove_root.md
+      load_after_validation: true
+    output:
+      required:
+      - remove_root_report
+  fuse_roots:
+    intent: |
+      Perform a read-only audit of multiple source Valhalla roots and fuse them into a new derived root. This operation does not write one source root into another; it creates a new root at the target path.
+    input:
+      required:
+      - source_roots
+      - target_root_path
+      optional:
+      - target_root_alias
+      pattern:
+        canonical: fuse sources <source-root-list> into <new-root-path> [alias <new-root-alias>]
+        compatible: <fuse-roots|merge-roots|consolidate-roots> <new-root-path> from <source-root-list> [alias <new-root-alias>]
+        examples:
+        - fuse sources root1, "E:\shared roots\Alice Root", E:\roots\BobRoot into E:\valhallaroot\FusionRoot alias combined-root
+        - merge roots E:\valhallaroot\FusionRoot from root1, root2 alias combined-root
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - admin
+        on_denied: "Denied fuse_roots: this operation may run only in admin state."
+    preconditions:
+    - id: source_roots_minimum_count
+      type: input_validation
+      parameters:
+        min_count: 2
+        source: source_roots
+      on_failed: "Precondition not met: source_roots requires at least two source roots."
+    - id: target_root_not_source_root
+      type: path_validation
+      parameters:
+        target: target_root_path
+        forbidden_sources: source_roots
+      on_failed: "Precondition not met: target_root_path must not equal any source root."
+    access:
+      read_scope:
+        allowed:
+        - root registry used to resolve source root aliases
+        - each resolved source root resource_registry.yaml/md
+        - each resolved source root blacklist_registry.yaml/md
+        - each resolved source root wiki_registry.yaml/md
+        - each source KB local_resources.yaml/md
+        - each source KB required_resources.yaml/md
+        - each source KB excluded_resources.yaml/md
+        - each source public resource representation required for identity audit
+      write_scope:
+        allowed:
+        - target_root_path/.valhalla/
+        - target_root_path/resource_registry.yaml
+        - target_root_path/resource_registry.md
+        - target_root_path/blacklist_registry.yaml
+        - target_root_path/blacklist_registry.md
+        - target_root_path/wiki_registry.yaml
+        - target_root_path/wiki_registry.md
+        - target_root_path/Library/public_resources/
+        - target_root_path/Wiki/
+        - target_root_path/.valhalla/imports/root_fusion_<timestamp>/
+        - root registry entry for target root when target root registration is explicitly confirmed
+        forbidden:
+        - any source root file or directory
+    executor:
+      type: workflow
+      paths:
+      - workflows/root_operation/fuse_roots.md
+      load_after_validation: true
+    output:
+      required:
+      - fuse_roots_report
+      - root_registration_decision
+      - next_operation
+
+
+

@@ -1,0 +1,61 @@
+contract:
+  name: create_kb_contract
+  version: 0.5.11
+  purpose: |
+    Create a new knowledge base under the current Valhalla root.
+operations:
+  create_kb:
+    input:
+      required:
+      - kb_name
+      optional: []
+      pattern:
+        canonical: create knowledge base <kb_name>
+        examples:
+        - create knowledge base test-kb
+        - create a knowledge base named test-kb
+        - create KB test-kb
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: high
+      confirmation_required: true
+    state_constraints:
+      os_status:
+        allowed:
+        - base
+        on_denied: "Denied create_kb: this operation may run only in base state."
+      kb_status:
+        allowed:
+        - idle
+        on_denied: "Denied create_kb: this operation may run only in idle state."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: target_kb_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_kb_known"
+    - id: target_wiki_absent_or_safe_to_complete
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: target_wiki_absent_or_safe_to_complete"
+    access: {}
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/create_kb.md
+      load_after_validation: true
+    output:
+      required:
+      - modified_files
+      - resource_table_pairs
+      - target_kb
+      - current_state
+      - updated_logs_or_indexes
+
+
+

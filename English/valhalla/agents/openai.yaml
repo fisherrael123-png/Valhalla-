@@ -1,0 +1,6 @@
+﻿interface:
+  display_name: "Valhalla"
+  short_description: "A local project workspace for interdisciplinary research teams"
+  default_prompt: "Use $valhalla to manage a local knowledge base or advance a project using the current knowledge base."
+
+

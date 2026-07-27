@@ -1,0 +1,74 @@
+contract:
+  name: edit_resource_table_contract
+  version: 0.5.11
+  purpose: |
+    Edit resource membership in the current knowledge base. YAML is the machine-authoritative table; same-named Markdown is a human-readable projection containing admission input and current source paths.
+operations:
+  edit_resource_table:
+    input:
+      required:
+      - target_table
+      - action
+      - resource_query
+      optional:
+      - note
+      pattern:
+        canonical: <resource-table-name> <add|delete> <resource_id|filename|Library-relative-path>
+        examples:
+        - required-resource table add res_000001
+        - this-KB resource table add attention.pdf
+        - excluded-resource table add Library/papers/problematic.pdf
+    permissions:
+      read: true
+      write: true
+    risk:
+      level: medium
+      confirmation_required: false
+    state_constraints:
+      kb_status:
+        allowed:
+        - kb:<name>
+        on_denied: "Denied edit_resource_table: this operation requires an active knowledge base."
+    preconditions:
+    - id: current_root_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: current_root_known"
+    - id: machine_and_human_resource_tables_known
+      type: builtin
+      parameters: {}
+      on_failed: "Precondition not met: machine_and_human_resource_tables_known"
+    access:
+      write_scope:
+        allowed:
+        - Wiki/Wiki_<knowledge-base-name>/<resource-table-name>.yaml
+        - Wiki/Wiki_<knowledge-base-name>/<resource-table-name>.md
+        denied: []
+    executor:
+      type: workflow
+      paths:
+      - workflows/kb/edit_resource_table.md
+      load_after_validation: true
+    output:
+      required:
+      - resource_id
+      - membership_status
+      - machine_table
+      - human_table
+      - modified_files
+      - target_kb
+      - current_state
+    constraints:
+      target_table_values:
+        local_resources:
+          aliases:
+          - this-KB resource table
+        required_resources:
+          aliases:
+          - required-resource table
+        excluded_resources:
+          aliases:
+          - excluded-resource table
+
+
+
