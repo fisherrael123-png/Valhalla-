@@ -21,7 +21,7 @@ This repository provides both Chinese and English versions. Please select the ve
 ## 📦 Repository Structure
 
 本项目提供中文和英文两个版本，请根据需求选择对应版本。
-
+```text
 Valhalla/
 │
 ├── Chinese/
@@ -31,7 +31,7 @@ Valhalla/
 └── English/
 ├── Valhalla/
 └── Tutorial/
-
+```
 
 Each language version contains two main components:
 
